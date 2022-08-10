@@ -1,0 +1,58 @@
+<div class="layout">
+  <div class="content">
+    <div class="thirdLine">
+      <span class="left-line"></span>
+      <div class="txt">
+        <span>用户登录</span>
+      </div>
+      <span class="right-line"></span>
+    </div>
+    <div class="back">
+      <button nz-button nzType="link" (click)="test()">
+        <i nz-icon nzType="left"></i>企业选择
+      </button>
+      <div style="display: flex; align-items: center; text-align: right; width: 50%;">
+        <h6 style="user-select: none; width: 100%; font-size: 95%;" nz-typography nzEllipsis nzEllipsisRows="1"
+          [attr.title]="data.enterprise.name">
+          {{data.enterprise.name}}
+        </h6>
+      </div>
+    </div>
+    <nz-input-group class="input" nzSize="large" [nzPrefix]="userIcon" [nzSuffix]="usernameTpl">
+      <input nz-input type="text" [(ngModel)]="username" placeholder="账户" [nzStatus]="status" />
+    </nz-input-group>
+    <nz-input-group class="input" nzSize="large" [nzPrefix]="lockIcon" [nzSuffix]="passwordTpl">
+      <input nz-input [type]="passwordInputType" [(ngModel)]="password" placeholder="密码" [nzStatus]="status" />
+    </nz-input-group>
+    <!-- <ng-template #globalIcon>
+      <i style="user-select: none;" nz-icon nzType="global" nzTheme="outline"></i>&nbsp;
+    </ng-template> -->
+    <ng-template #userIcon>
+      <span style="user-select: none;">
+        <i nz-icon nzType="user" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #lockIcon>
+      <span style="user-select: none;">
+        <i nz-icon nzType="lock" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #usernameTpl>
+      <i style="user-select: none; color: lightgray;" nz-icon nzTheme="fill" nzType="close-circle" *ngIf="username"
+        (click)="username = null"></i>
+    </ng-template>
+    <ng-template #passwordTpl>
+      <i nz-icon nzType="eye-invisible" nzTheme="fill" *ngIf="password && passwordInputType == 'password'"
+        style="color: lightgray" (click)="passwordInputType = 'text'"></i>
+      <i nz-icon nzType="eye" nzTheme="fill" *ngIf="password && passwordInputType == 'text'" style="color: lightgray;"
+        (click)="passwordInputType = 'password'"></i>
+    </ng-template>
+    <div class="auto">
+      <div style="display: flex; align-items: center;">
+        <label style="user-select: none;" nz-checkbox [(ngModel)]="checked">记住用户名</label>
+      </div>
+      <button nz-button nzType="link">忘记密码</button>
+    </div>
+    <button [ngStyle]="{'margin-top': '30px'}" nz-button nzType="primary" nzBlock nzSize="large">登录</button>
+  </div>
+</div>

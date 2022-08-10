@@ -1,0 +1,35 @@
+<div class="layout">
+  <div class="content">
+    <div class="thirdLine">
+      <span class="left-line"></span>
+      <div class="txt">
+        <span>选择企业</span>
+      </div>
+      <span class="right-line"></span>
+    </div>
+    <nz-input-group nzSize="large" [nzPrefix]="golbalIcon" [nzSuffix]="enterpriseClearTpl" [nzStatus]="status">
+      <input [disabled]="disabled" (input)="onInput()" (keyup.enter)="selectEnterprise()" nz-input type="text"
+        [(ngModel)]="enterprise" placeholder="企业名称" />
+    </nz-input-group>
+    <div style="height: 10px;">
+      <p *ngIf="status" style="color: red">{{errorMessage}}</p>
+    </div>
+    <ng-template #golbalIcon>
+      <span style="user-select: none;">
+        <i style="user-select: none;" nz-icon nzType="global" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #enterpriseClearTpl>
+      <i style="user-select: none; color: lightgray;" nz-icon nzTheme="fill" nzType="close-circle" *ngIf="enterprise"
+        (click)="enterprise = null; onInput();"></i>
+    </ng-template>
+    <div class="auto">
+      <div style="display: flex; align-items: center;">
+        <label style="user-select: none;" nz-checkbox [(ngModel)]="checked">自动选择</label>
+      </div>
+      <button nz-button nzType="link" routerLink="/login/register">企业注册</button>
+    </div>
+    <button [ngStyle]="{'margin-top': '30px'}" nz-button nzType="primary" nzBlock nzSize="large"
+      (click)="selectEnterprise()" [disabled]="!enterprise">确认选择</button>
+  </div>
+</div>

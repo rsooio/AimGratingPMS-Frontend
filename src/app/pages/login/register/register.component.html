@@ -1,0 +1,93 @@
+<div class="layout">
+  <div class="content">
+    <div class="thirdLine">
+      <span class="left-line"></span>
+      <div class="txt">
+        <span>企业注册</span>
+      </div>
+      <span class="right-line"></span>
+    </div>
+    <nz-input-group class="input" nzSize="large" [nzStatus]="enterpriseStatus" [nzPrefix]="golbalIcon"
+      [nzSuffix]="enterpriseClearTpl">
+      <input [disabled]="disabled" (input)="onEnterpriseInput()" nz-input type="text" [(ngModel)]="enterprise"
+        maxlength="30" placeholder="企业名称" />
+    </nz-input-group>
+    <nz-input-group class="input" nzSize="large" [nzPrefix]="userIcon" [nzSuffix]="usernameClearTpl">
+      <input [disabled]="disabled" (input)="onUsernameInput()" nz-input type="text" [(ngModel)]="username"
+        maxlength="20" placeholder="管理员帐户" />
+    </nz-input-group>
+    <nz-input-group class="input" nzSize="large" [nzPrefix]="lockIcon" [nzSuffix]="passwordClearTpl">
+      <input [disabled]="disabled" (input)="onPasswordInput()" nz-input type="password" [(ngModel)]="password"
+        placeholder="管理员密码" />
+    </nz-input-group>
+    <nz-input-group class="input" nzSize="large" [nzStatus]="passwordConfirmStatus" [nzPrefix]="lockIcon"
+      [nzSuffix]="passwordConfirmShowTpl">
+      <input [disabled]="disabled" (input)="onPasswordInput()" nz-input [type]="passwordConfirmType"
+        [(ngModel)]="passwordConfirm" placeholder="确认密码" />
+    </nz-input-group>
+    <nz-input-group style="margin-bottom: 0px;" class="input" nzSize="large" [nzPrefix]="environmentIcon"
+      [nzSuffix]="addressClearTpl">
+      <input [disabled]="disabled" nz-input type="text" [(ngModel)]="address" maxlength="100" placeholder="企业地址" />
+    </nz-input-group>
+    <ng-template #golbalIcon>
+      <span style="user-select: none;">
+        <i style="user-select: none;" nz-icon nzType="global" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #userIcon>
+      <span style="user-select: none;">
+        <i style="user-select: none;" nz-icon nzType="user" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #lockIcon>
+      <span style="user-select: none;">
+        <i style="user-select: none;" nz-icon nzType="lock" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #environmentIcon>
+      <span style="user-select: none;">
+        <i style="user-select: none;" nz-icon nzType="environment" nzTheme="outline"></i>&nbsp;
+      </span>
+    </ng-template>
+    <ng-template #enterpriseClearTpl>
+      <i style="user-select: none; color: lightgray;" nz-icon nzTheme="fill" nzType="close-circle" *ngIf="enterprise"
+        (click)="enterprise = null; onEnterpriseInput();"></i>
+    </ng-template>
+    <ng-template #usernameClearTpl>
+      <i style="user-select: none; color: lightgray;" nz-icon nzTheme="fill" nzType="close-circle" *ngIf="username"
+        (click)="username = null; onUsernameInput();"></i>
+    </ng-template>
+    <ng-template #passwordClearTpl>
+      <i style="user-select: none; color: lightgray;" nz-icon nzTheme="fill" nzType="close-circle" *ngIf="password"
+        (click)="password = null; passwordConfirm = null;"></i>
+    </ng-template>
+    <ng-template #passwordConfirmShowTpl>
+      <i nz-icon nzType="eye-invisible" nzTheme="fill" *ngIf="passwordConfirm && passwordConfirmType == 'password'"
+        style="color: lightgray" (click)="passwordConfirmType = 'text'"></i>
+      <i nz-icon nzType="eye" nzTheme="fill" *ngIf="passwordConfirm && passwordConfirmType == 'text'"
+        style="color: lightgray;" (click)="passwordConfirmType = 'password'"></i>
+    </ng-template>
+    <ng-template #addressClearTpl>
+      <i style="user-select: none; color: lightgray;" nz-icon nzTheme="fill" nzType="close-circle" *ngIf="address"
+        (click)="address = null"></i>
+    </ng-template>
+    <!-- <div class="auto">
+      <div style="display: flex; align-items: center;">
+        <label style="user-select: none;" nz-checkbox [(ngModel)]="checked">同意许可</label>
+      </div>
+      <button nz-button nzType="link" routerLink="/login/enterprise">已有企业，登录</button>
+    </div> -->
+    <div style="height: 10px;">
+      <p *ngIf="errorState == 1" style="color: red">企业名称已经存在，请更改后重试</p>
+      <p *ngIf="errorState == 2" style="color: red">密码不一致，请重新输入</p>
+    </div>
+    <div class="auto">
+      <!-- <div style="width: 50%; margin-top: 0; height: 0;"> -->
+      <button style="margin-top: 0; width: 50%;" [disabled]="buttonDisable" nz-button nzType="primary" nzSize="large"
+        (click)="registerEnterprise()">注册</button>
+      <!-- </div> -->
+      <button style="padding-right: 0;" nz-button nzType="link" nzSize="large"
+        routerLink="/login/enterprise">已有企业，登录</button>
+    </div>
+  </div>
+</div>

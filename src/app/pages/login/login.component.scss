@@ -1,0 +1,22 @@
+.header {
+  height: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.heading {
+  font-weight: 600;
+  user-select: none;
+  font-size: 350%;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+.subheading {
+  user-select: none;
+  font-size: 125%;
+  color: rgba($color: #000000, $alpha: 0.45);
+  margin: 20px;
+}
