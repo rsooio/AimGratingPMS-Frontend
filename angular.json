@@ -7,10 +7,42 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
+          "skipTests": false,
+          "flat": false,
+          "inlineStyle": true,
+          "inlineTemplate": false,
           "style": "scss"
         },
         "@schematics/angular:application": {
           "strict": true
+        },
+        "ng-alain:module": {
+          "routing": true,
+          "skipTests": false
+        },
+        "ng-alain:list": {
+          "skipTests": false
+        },
+        "ng-alain:edit": {
+          "skipTests": false,
+          "modal": true
+        },
+        "ng-alain:view": {
+          "skipTests": false,
+          "modal": true
+        },
+        "ng-alain:curd": {
+          "skipTests": false
+        },
+        "@schematics/angular:module": {
+          "routing": true,
+          "skipTests": false
+        },
+        "@schematics/angular:directive": {
+          "skipTests": false
+        },
+        "@schematics/angular:service": {
+          "skipTests": false
         }
       },
       "root": "",
@@ -39,15 +71,41 @@
               "src/theme.less",
               "src/styles.scss"
             ],
-            "scripts": []
+            "allowedCommonJsDependencies": [
+              "-",
+              "@antv/g2",
+              "a",
+              "ajv",
+              "ajv-formats",
+              "c",
+              "date-fns",
+              "e",
+              "file-saver",
+              "h",
+              "j",
+              "n",
+              "o",
+              "p",
+              "r",
+              "s",
+              "t",
+              "x",
+              "z"
+            ],
+            "scripts": [],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "node_modules/"
+              ]
+            }
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kb",
-                  "maximumError": "1mb"
+                  "maximumWarning": "2mb",
+                  "maximumError": "3mb"
                 },
                 {
                   "type": "anyComponentStyle",
@@ -84,7 +142,10 @@
               "browserTarget": "Frontend:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "proxyConfig": "proxy.conf.js"
+          }
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -108,6 +169,15 @@
               "src/styles.scss"
             ],
             "scripts": []
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": [
+              "src/**/*.ts",
+              "src/**/*.html"
+            ]
           }
         }
       }

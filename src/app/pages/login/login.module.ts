@@ -1,3 +1,5 @@
+import { SimpleReuseStrategy } from './../../strategy/SimpleReuseStrategy';
+import { RouteReuseStrategy } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { CommonModule } from '@angular/common';

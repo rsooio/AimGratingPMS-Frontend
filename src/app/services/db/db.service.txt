@@ -1,0 +1,282 @@
+import { stafferCollection, StafferDocType } from '../../schemas/staffer';
+import { enterpriseCollection, EnterpriseDocument } from '../../schemas/enterprise';
+import { AirGratingDatabase } from '../../schemas/RxDB';
+import { IS_SERVER_SIDE_RENDERING, SYNC_ENDPOINT } from './shared';
+import { Injectable, isDevMode } from '@angular/core';
+import { addRxPlugin, createRxDatabase, RxCollectionBase } from 'rxdb';
+// import { PouchDB } from 'rxdb/plugins/pouchdb'
+import { RxDBReplicationCouchDBPlugin } from 'rxdb/plugins/replication-couchdb';
+import { RxDBLeaderElectionPlugin } from 'rxdb/plugins/leader-election';
+import { addPouchPlugin, getPouchDBOfRxCollection, getRxStoragePouch, PouchReplicationOptions } from 'rxdb/plugins/pouchdb'
+import PouchDB from 'pouchdb';
+import PouchAuth from 'pouchdb-authentication'
+import { RxDBLocalDocumentsPlugin } from 'rxdb/plugins/local-documents';
+import { of, Observable, Subscriber } from 'rxjs';
+import { RxDBMigrationPlugin } from 'rxdb/plugins/migration';
+
+let collections = {
+  enterprise: enterpriseCollection,
+};
+
+function doSync(): boolean {
+  if (IS_SERVER_SIDE_RENDERING) {
+    return true;
+  }
+  if (global.window.location.hash == '#nosync') {
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Loads RxDB plugins
+ */
+async function loadRxDBPlugins(): Promise<void> {
+  console.log('loading plugins...')
+
+  addRxPlugin(RxDBReplicationCouchDBPlugin);
+  addRxPlugin(RxDBLocalDocumentsPlugin)
+  addRxPlugin(RxDBMigrationPlugin);
+  // http-adapter is always needed for replication with the node-server
+  addPouchPlugin(require('pouchdb-adapter-http'));
+  PouchDB.plugin(PouchAuth)
+
+  if (IS_SERVER_SIDE_RENDERING) {
+    // for server side rendering, import the memory adapter
+    // addRxPlugin(require('pouchdb-adapter-memory'));
+  } else {
+    // else, use indexeddb
+    addPouchPlugin(require('pouchdb-adapter-idb'));
+    // then we also need the leader election
+    addRxPlugin(RxDBLeaderElectionPlugin);
+  }
+
+
+  /**
+   * to reduce the build-size,
+   * we use some modules in dev-mode only
+   */
+  if (isDevMode() && !IS_SERVER_SIDE_RENDERING) {
+    console.log("dev mode!!!")
+    await Promise.all([
+
+      // add dev-mode plugin
+      // which does many checks and add full error-messages
+      import('rxdb/plugins/dev-mode').then(
+        module => addRxPlugin(module.RxDBDevModePlugin)
+      ),
+
+      // we use the schema-validation only in dev-mode
+      // this validates each document if it is matching the jsonschema
+      import('rxdb/plugins/validate').then(
+        module => addRxPlugin(module.RxDBValidatePlugin)
+      )
+    ]);
+  } else {
+    console.log("proc mode!!!")
+    // in production we use the no-validate module instead of the schema-validation
+    // to reduce the build-size
+    // addRxPlugin(RxDBNoValidatePlugin);
+  }
+
+}
+
+let remoteDbs: PouchDB.Database<{}>[] = []
+
+/**
+ * async a collection
+ */
+async function syncCollection<T, U, V, W>(collection: RxCollectionBase<T, U, V, W>, databaseName: string, options?: PouchReplicationOptions) {
+  const remoteDB = new PouchDB(SYNC_ENDPOINT + databaseName)
+  remoteDbs.push(remoteDB)
+
+  if (doSync()) {
+    console.log('DatabaseService: sync');
+
+    if (IS_SERVER_SIDE_RENDERING) {
+      /**
+       * For server side rendering,
+       * we just run a one-time replication to ensure the client has the same data as the server.
+       */
+      console.log('DatabaseService: await initial replication to ensure SSR has all data');
+      if (options) options.live = false;
+      const firstReplication = collection.syncCouchDB({
+        // remote: syncURL,
+        remote: remoteDB,
+        options: options
+      });
+      firstReplication.denied$.subscribe({
+        next: m => console.log(m),
+        error: e => console.log(e)
+      })
+      await firstReplication.awaitInitialReplication();
+    }
+
+    /**
+     * we start a live replication which also sync the ongoing changes
+     */
+    if (options) options.live = true;
+    const state = collection.syncCouchDB({
+      // remote: syncURL,
+      remote: remoteDB,
+      options: options
+    });
+    state.denied$.subscribe({
+      next: m => console.log(m),
+      error: e => console.log(e)
+    })
+  }
+
+  return remoteDB
+}
+
+/**
+ * creates the database
+ */
+async function _create(): Promise<AirGratingDatabase> {
+
+  await loadRxDBPlugins();
+
+  console.log('DatabaseService: creating database..');
+  const db = await createRxDatabase<AirGratingDatabase>({
+    name: "air-grating-pms_test",
+    storage: getRxStoragePouch(IS_SERVER_SIDE_RENDERING ? 'memory' : 'idb'),
+    multiInstance: !IS_SERVER_SIDE_RENDERING,
+    localDocuments: true
+  });
+  console.log('DatabaseService: created database');
+
+  if (!IS_SERVER_SIDE_RENDERING && isDevMode()) {
+    // write to window for debugging
+    (window as any)['db'] = db;
+  }
+
+  // show leadership in title
+  if (!IS_SERVER_SIDE_RENDERING) {
+    db.waitForLeadership()
+      .then(() => {
+        console.log('isLeader now');
+        document.title = '♛ ' + document.title;
+      });
+  }
+
+  // create collections
+  console.log('DatabaseService: create collections');
+  await db.addCollections(collections)
+  syncCollection(db.enterprise, 'enterprise').then(m => {
+    if (!IS_SERVER_SIDE_RENDERING && isDevMode()) {
+      // write to window for debugging
+      (window as any)['remoteDB'] = m;
+    }
+    console.log(m)
+  }).catch(e => {
+    console.log(e)
+  })
+
+  console.log('DatabaseService: created');
+
+  if (!IS_SERVER_SIDE_RENDERING && isDevMode()) {
+    (window as any)['stafferCollection'] = stafferCollection;
+    (window as any)['syncCollection'] = syncCollection;
+  }
+
+  await db.addCollections({
+    staffera: stafferCollection,
+    stafferb: stafferCollection,
+  })
+
+  syncCollection(db.staffera, 'staffer', {
+    filter: (doc: StafferDocType) => {
+      return doc.workshop == 'a'
+    },
+  }).catch(e => {
+    console.log(e)
+  })
+  // syncCollection(db.stafferb, 'staffer', {
+  //   filter: (doc: StafferDocType) => {
+  //     return doc.workshop == 'a'
+  //   },
+  // }).catch(e => {
+  //   console.log(e)
+  // })
+
+  let a = new PouchDB('a')
+  let b = new PouchDB('b')
+  a.replicate.to(b, {
+    filter: ''
+  })
+
+  return db;
+}
+
+let initState: null | Promise<any> = null;;
+let DB_INSTANCE: AirGratingDatabase;
+
+/**
+ * This is run via APP_INITIALIZER in app.module.ts
+ * to ensure the database exists before the angular-app starts up
+ */
+export async function initDatabase() {
+  /**
+   * When server side rendering is used,
+   * The database might already be there
+   */
+  if (!initState) {
+    console.log('initDatabase()');
+    initState = _create().then(db => DB_INSTANCE = db);
+  }
+  await initState;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class DbService {
+
+  constructor() { }
+
+  get db(): AirGratingDatabase {
+    return DB_INSTANCE;
+  }
+
+  private authBath<T>(proc: (o: Subscriber<T>) => void) {
+    return new Observable<T>(o => {
+      if (remoteDbs.length == 0) {
+        o.error()
+        return
+      }
+      proc(o)
+    })
+  }
+
+  login = (username: string, password: string) =>
+    this.authBath<PouchDB.Authentication.LoginResponse>(o => {
+      remoteDbs[0].logIn(username, password)
+        .then(m => o.next(m))
+        .catch(e => o.error(e))
+    })
+
+  getSession = () =>
+    this.authBath<PouchDB.Authentication.SessionResponse>(o => {
+      remoteDbs[0].getSession()
+        .then(m => o.next(m))
+        .catch(e => o.error(e))
+    })
+
+  putUser = (username: string, data: PouchDB.Authentication.PutUserOptions) =>
+    this.authBath(o => {
+      remoteDbs[0].putUser(username, data)
+        .then(m => o.next(m))
+        .catch(e => o.error(e))
+    })
+
+  logout() {
+    return new Observable<PouchDB.Core.BasicResponse>(o => {
+      for (let i of remoteDbs) {
+        i.logOut()
+          .then(m => o.next(m))
+          .catch(e => o.error(e))
+      }
+    })
+  }
+}

@@ -1,0 +1,30 @@
+.header {
+  height: auto;
+  padding: 0;
+  background-color: white;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+}
+
+.page-header {
+  width: 100%;
+}
+
+.description {
+  margin: 0;
+}
+
+.edit-button {
+  padding: 0;
+}
+
+.input-cell {
+  display: inline-flex;
+  justify-content: start;
+  align-items: center;
+}
+
+:host ::ng-deep .ant-empty-image {
+  height: 40px;
+}

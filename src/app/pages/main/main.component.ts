@@ -13,5 +13,21 @@ export class MainComponent implements OnInit {
   }
 
   isCollapsed = false;
+  openMap: { [name: string]: boolean } = {
+    sub1: true,
+    sub2: false,
+    sub3: false,
+    sub4: false,
+    sub5: false,
+    sub6: false
+  };
+
+  openHandler(value: string): void {
+    for (const key in this.openMap) {
+      if (key !== value) {
+        this.openMap[key] = false;
+      }
+    }
+  }
 
 }

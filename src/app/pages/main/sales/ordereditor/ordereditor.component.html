@@ -1,0 +1,161 @@
+<nz-layout style="background-color: white;">
+  <nz-header class="header">
+    <nz-page-header class="page-header" (nzBack)="onBack()" nzBackIcon>
+      <nz-breadcrumb nz-page-header-breadcrumb>
+        <nz-breadcrumb-item>
+          <a routerLink="..">全部订单</a>
+        </nz-breadcrumb-item>
+        <nz-breadcrumb-item>
+          <a routerLink=".">{{id.toUpperCase()}}</a>
+        </nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <nz-page-header-title>订单编辑</nz-page-header-title>
+      <nz-page-header-subtitle>
+        <p style="margin: 0" nz-typography nzCopyable [nzContent]="id">{{id}}</p>
+      </nz-page-header-subtitle>
+      <nz-page-header-extra>
+        <nz-space>
+          <button *nzSpaceItem nz-button>元数据编辑</button>
+          <button *nzSpaceItem nz-button nzType="primary" [disabled]="createProductSetButtonDisabled"
+            (click)="createProductSet()">新建产品集</button>
+          <button *nzSpaceItem nz-button nzType="primary" nzDanger>删除产品集</button>
+        </nz-space>
+      </nz-page-header-extra>
+      <nz-page-header-content>
+        <!-- <div style="display: flex; justify-content: space-between;"> -->
+        <div style="display: flex;">
+          <nz-statistic nzTitle="状态" [nzValue]="dataService.ORDER_STATE[order['state']]"></nz-statistic>
+          <nz-statistic nzTitle="面积" [nzValue]="order['area'] ? order['area'] : 0" nzSuffix="㎡" style="margin: 0 32px">
+          </nz-statistic>
+          <nz-statistic *ngIf="true" nzTitle="价格" style=" margin-right: 32px;"
+            [nzValue]="order['price'] ? order['price'] : 0" nzPrefix="¥">
+          </nz-statistic>
+          <!-- <div style="flex-grow: 1;">
+            <div>select</div>
+            <nz-select *ngIf="false" nzShowSearch nzPlaceHolder="选择用户" nzLoading="false" nzDisabled="false"
+              (ngModelChange)="change($event)" [(ngModel)]="order['client']" [nzOptions]="clientService.options"
+              [nzFilterOption]="pinyin.SearchByPinyin">
+            </nz-select>
+          </div> -->
+          <table style="flex-grow: 1;">
+            <tbody>
+              <tr>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;" *ngIf="order['edit'] !== 10"
+                    (click)="order['edit'] = 10" [ngStyle]="{'color': order['client'] ? 'black' : 'lightgrey'}">
+                    {{order['client'] ? clientService.cache[order['client']] : '请选择'}}
+                  </div>
+                  <nz-select style="display: block;" *ngIf="order['edit'] === 10" nzShowSearch nzPlaceHolder="选择用户"
+                    (ngModelChange)="select(order, $event)" [(ngModel)]="order['client']" (nzBlur)="clearFocus(order)"
+                    [nzOptions]="clientService.options" [nzFilterOption]="pinyin.SearchByPinyin"
+                    [nzOpen]="order['edit'] === 10" [cdkTrapFocusAutoCapture]="order['edit'] === 10"
+                    [cdkTrapFocus]="order['edit'] === 10">
+                  </nz-select>
+                </td>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+                <td class="editable-unit" width="1%">
+                  <div class="editable-cell" style="display: block;">
+                    你好
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </nz-page-header-content>
+    </nz-page-header>
+  </nz-header>
+  <nz-content>
+    <nz-table #basicTable [nzData]="productSets" nzTableLayout="fixed" [nzPageSize]="dataService.getPageSize(430, 44)">
+      <thead>
+        <tr>
+          <th nzWidth="30px"></th>
+          <th nzAlign="center" nzWidth="10%">编码</th>
+          <th nzAlign="center" nzWidth="10%">面积</th>
+          <th nzAlign="center" nzWidth="10%" *ngIf="dataService.info.role == 'boss'">价格</th>
+          <th nzAlign="center">描述</th>
+          <th nzAlign="center">备注</th>
+          <th nzAlign="center">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data; index as i">
+          <td nzAlign="center" nzEllipsis>
+            {{(basicTable.nzPageIndex - 1) * basicTable.nzPageSize + i + 1}}
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <div class="not-editable-cell" style="font-family:monospace;">
+              {{(id + '-' + data.key).toUpperCase()}}
+            </div>
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <div [ngStyle]="{'color': data.value['area'] ? 'black' : 'lightgray'}">
+              {{data.value['area'] ? data.value['area'] + ' ㎡' : '—'}}
+            </div>
+          </td>
+          <td *ngIf="dataService.info.role == 'boss'" nzAlign="center" nzEllipsis>
+            <div [ngStyle]="{'color': data.value['price'] ? 'black' : 'lightgray'}">
+              {{data.value['price'] ? '¥ ' + data.value['price'] : '—'}}
+            </div>
+          </td>
+          <td nzAlign="left" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 7" (click)="data.value['edit'] = 7"
+              [ngStyle]="{'color': data.value['describe'] ? 'black' : 'lightgrey'}">
+              {{data.value['describe'] ? data.value['describe'] : '&nbsp;'}}
+            </div>
+            <textarea class="table-textarea" nz-input type="text" *ngIf="data.value['edit'] === 7"
+              (blur)="update(data.value)" [(ngModel)]="data.value['describe']"
+              [cdkTrapFocusAutoCapture]="data.value['edit'] === 7" [cdkTrapFocus]="data.value['edit'] === 7"
+              (ngModelChange)="data.value['change'] = true"></textarea>
+          </td>
+          <td nzAlign="left" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 8" (click)="data.value['edit'] = 8"
+              [ngStyle]="{'color': data.value['remark'] ? 'black' : 'lightgrey'}">
+              {{data.value['remark'] ? data.value['remark'] : '&nbsp;'}}
+            </div>
+            <textarea class="table-textarea" nz-input type="text" *ngIf="data.value['edit'] === 8"
+              (blur)="update(data.value)" [(ngModel)]="data.value['remark']"
+              [cdkTrapFocusAutoCapture]="data.value['edit'] === 8" [cdkTrapFocus]="data.value['edit'] === 8"
+              (ngModelChange)="data.value['change'] = true"></textarea>
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <a [routerLink]="data.key">编辑</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <a (click)="delete(data.key)">删除</a>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-content>
+</nz-layout>

@@ -1,0 +1,39 @@
+<nz-layout style="background-color: white;">
+  <nz-header style="margin-bottom: 20px;" class="header">
+    <div>
+
+    </div>
+    <div>
+      <button nz-button nzType="primary" (click)="createOrder()">新建订单</button>
+      <button nz-button style="margin-left: 20px;" nzType="primary" nzDanger>删除订单</button>
+    </div>
+  </nz-header>
+  <nz-content>
+    <nz-table #basicTable [nzData]="dataList">
+      <thead>
+        <tr>
+          <th width="120px">订单号</th>
+          <th>客户</th>
+          <th>面积</th>
+          <th *ngIf="role == 'boss'">价格</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data">
+          <td>{{data['_id'].toUpperCase()}}</td>
+          <td>{{data['client']}}</td>
+          <td>{{data['area'] ? data['area'].toFixed(2) + ' ㎡' : '0'}}</td>
+          <td *ngIf="role == 'boss'">{{'¥ ' + data['price']}}</td>
+          <td>{{data['state']}}</td>
+          <td>
+            <a [routerLink]="data['_id']">编辑</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <a (click)="delete(data._id)">删除</a>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-content>
+</nz-layout>

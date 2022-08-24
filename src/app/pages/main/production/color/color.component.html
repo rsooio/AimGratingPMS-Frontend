@@ -1,0 +1,151 @@
+<nz-layout style="background-color: white;">
+  <nz-header class="header">
+    <nz-page-header class="page-header" nzBackIcon (nzBack)="onBack()">
+      <nz-breadcrumb nz-page-header-breadcrumb>
+        <nz-breadcrumb-item>
+          <a routerLink="../..">工艺管理</a>
+        </nz-breadcrumb-item>
+        <nz-breadcrumb-item>
+          <a routerLink="..">{{technology['name'] ? technology['name'] : '未命名'}}</a>
+        </nz-breadcrumb-item>
+        <nz-breadcrumb-item>
+          <a routerLink=".">{{texture['name'] ? texture['name'] : '未命名'}}</a>
+        </nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <nz-page-header-title>外观管理</nz-page-header-title>
+      <nz-page-header-extra>
+        <nz-space>
+          <button *nzSpaceItem nz-button nzType="primary" [disabled]="createColorButtonDisabled"
+            (click)="createColor()">新建外观</button>
+          <button *nzSpaceItem nz-button nzType="primary" nzDanger>删除外观</button>
+        </nz-space>
+      </nz-page-header-extra>
+      <nz-page-header-content>
+        <!-- <div style="display: flex; justify-content: space-between;"> -->
+        <div style="display: flex;">
+          <nz-statistic nzTitle="数量" [nzValue]="dataList.length" nzSuffix="种"></nz-statistic>
+          <!-- <div style="display: flex; flex-wrap: wrap; width: 50%;">
+            <div style="width: 30%" class="input-cell">
+              <p nz-typography nzEditable>客户：美的黄总</p>
+            </div>
+            <p style="width: 30%;">联系人：</p>
+            <p style="width: 40%;">联系电话：</p>
+            <p style="width: 50%;">地址：</p>
+            <p style="width: 50%;">送货地址：</p>
+            <nz-input-group style="width: 30%;" nzAddOnBefore="客户">
+              <input nz-input>
+            </nz-input-group>
+            <nz-input-group style="width: 30%;" nzAddOnBefore="客户">
+              <input nz-input>
+            </nz-input-group>
+            <nz-input-group style="width: 30%;" nzAddOnBefore="客户">
+              <input nz-input>
+            </nz-input-group>
+          </div> -->
+          <!-- <p>备注：</p> -->
+          <div>
+            <!-- <nz-select style="width: 200px;" nzShowSearch nzPlaceHolder="选择用户" [nzCustomTemplate]="selected_client"
+              nzLoading="false" nzDisabled="false" (ngModelChange)="change($event)" [(ngModel)]="order['client']">
+              <nz-option *ngFor="let data of technologies" [nzLabel]="pinyin.firstLetter(data['_id'])"
+                [nzValue]="data['_id']" nzCustomContent="true">
+                {{data['_id']}}
+              </nz-option>
+            </nz-select> -->
+            <!-- <ng-template #selected_client let-selected>
+              {{ selected.nzValue }}
+            </ng-template> -->
+          </div>
+        </div>
+        <!-- <nz-descriptions style="width: 60%;" nzSize="small" [nzColumn]="24">
+            <nz-descriptions-item nzTitle="客户" [nzSpan]="4">
+              <p class="description" nz-typography nzEditable>
+                test
+              </p>
+              <nz-autocomplete [nzDataSource]="['test', 'hello', 'world']" nzBackfill #auto></nz-autocomplete>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="联系人" [nzSpan]="4">张钊洋先生
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="联系方式" [nzSpan]="8"><a>421421</a>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="地址" [nzSpan]="8"><a>421421</a>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="备注" [nzSpan]="16"><a>421421</a>
+            </nz-descriptions-item>
+            <nz-descriptions-item nzTitle="送货地址" [nzSpan]="8"><a>421421</a>
+            </nz-descriptions-item>
+          </nz-descriptions> -->
+        <!-- </div> -->
+      </nz-page-header-content>
+    </nz-page-header>
+  </nz-header>
+  <nz-content>
+    <nz-table #basicTable [nzData]="dataList">
+      <thead>
+        <tr>
+          <th>名称</th>
+          <th>描述</th>
+          <th>调整方式</th>
+          <th>调整因子</th>
+          <th>备注</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let key of basicTable.data">
+          <td class="editable-unit">
+            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 1" (click)="dataItem(key)['edit'] = 1">
+              {{dataItem(key)['name'] ? dataItem(key)['name'] : '无数据'}}
+            </div>
+            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 1" (blur)="change(dataItem(key))"
+              [(ngModel)]="dataItem(key)['name']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 1"
+              [cdkTrapFocus]="dataItem(key)['edit'] === 1" (ngModelChange)="dataItem(key)['change'] = true" />
+          </td>
+          <td class="editable-unit">
+            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 2" (click)="dataItem(key)['edit'] = 2">
+              {{dataItem(key)['describe'] ? dataItem(key)['describe'] : '-'}}
+            </div>
+            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 2" (blur)="change(dataItem(key))"
+              [(ngModel)]="dataItem(key)['describe']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 2"
+              [cdkTrapFocus]="dataItem(key)['edit'] === 2" (ngModelChange)="dataItem(key)['change'] = true" />
+          </td>
+          <td class="editable-unit">
+            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 3" (click)="dataItem(key)['edit'] = 3">
+              {{dataItem(key)['pattern'] ? dataItem(key)['pattern'] : '无数据'}}
+            </div>
+            <nz-select style="position: relative; width: 100%" [hidden]="dataItem(key)['edit'] !== 3" nzShowSearch
+              nzPlaceHolder="选择工艺" [nzCustomTemplate]="selected_technology" [(ngModel)]="dataItem(key)['pattern']"
+              (ngModelChange)="patternSelect(dataItem(key))" [nzOpen]="dataItem(key)['edit'] === 3"
+              (nzBlur)="clearFocus(dataItem(key))">
+              <nz-option *ngFor="let name of patterns" [nzLabel]="pinyin.firstLetter(name)" [nzValue]="name"
+                nzCustomContent="true">
+                {{name}}
+              </nz-option>
+              <ng-template #selected_technology let-selected>
+                {{ selected.nzValue }}
+              </ng-template>
+            </nz-select>
+          </td>
+          <td class="editable-unit">
+            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 4" (click)="dataItem(key)['edit'] = 4">
+              {{dataItem(key)['factor'] ? dataItem(key)['factor'] : '无数据'}}
+            </div>
+            <input nz-input type="number" [hidden]="dataItem(key)['edit'] !== 4" (blur)="change(dataItem(key))"
+              [(ngModel)]="dataItem(key)['factor']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 4"
+              [cdkTrapFocus]="dataItem(key)['edit'] === 4" (ngModelChange)="dataItem(key)['change'] = true" />
+          </td>
+          <td class="editable-unit">
+            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 5" (click)="dataItem(key)['edit'] = 5">
+              {{dataItem(key)['remark'] ? dataItem(key)['remark'] : '-'}}
+            </div>
+            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 5" (blur)="change(dataItem(key))"
+              [(ngModel)]="dataItem(key)['remark']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 5"
+              [cdkTrapFocus]="dataItem(key)['edit'] === 5" (ngModelChange)="dataItem(key)['change'] = true" />
+          </td>
+          <td>
+            <a (click)="delete(key)">删除</a>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-content>
+</nz-layout>

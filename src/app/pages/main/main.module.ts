@@ -1,3 +1,4 @@
+import { MainRoutingModule } from './../main/main-routing.module';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { IconsProviderModule } from '@/icons-provider.module';
@@ -19,7 +20,7 @@ import { BrowserModule } from '@angular/platform-browser';
     CommonModule,
     NzMenuModule,
     NzLayoutModule,
-    RouterModule,
+    MainRoutingModule,
     IconsProviderModule,
     // BrowserAnimationsModule,
     // FormsModule,

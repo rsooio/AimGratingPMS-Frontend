@@ -8,13 +8,13 @@
       <span class="right-line"></span>
     </div>
     <div class="back">
-      <button nz-button nzType="link" (click)="test()">
-        <i nz-icon nzType="left"></i>企业选择
+      <button style="padding-left: 0;" nz-button nzType="link" routerLink="/login/enterprise">
+        <i nz-icon nzType="left"></i>选择企业
       </button>
       <div style="display: flex; align-items: center; text-align: right; width: 50%;">
         <h6 style="user-select: none; width: 100%; font-size: 95%;" nz-typography nzEllipsis nzEllipsisRows="1"
-          [attr.title]="data.enterprise.name">
-          {{data.enterprise.name}}
+          [attr.title]="enterprise?.toUpperCase()">
+          {{enterprise?.toUpperCase()}}
         </h6>
       </div>
     </div>
@@ -47,12 +47,16 @@
       <i nz-icon nzType="eye" nzTheme="fill" *ngIf="password && passwordInputType == 'text'" style="color: lightgray;"
         (click)="passwordInputType = 'password'"></i>
     </ng-template>
+    <div style="height: 10px;">
+      <p *ngIf="status" style="color: red">{{errorMessage}}</p>
+    </div>
     <div class="auto">
       <div style="display: flex; align-items: center;">
         <label style="user-select: none;" nz-checkbox [(ngModel)]="checked">记住用户名</label>
       </div>
-      <button nz-button nzType="link">忘记密码</button>
+      <button style="padding-right: 0;" nz-button nzType="link">忘记密码</button>
     </div>
-    <button [ngStyle]="{'margin-top': '30px'}" nz-button nzType="primary" nzBlock nzSize="large">登录</button>
+    <button [ngStyle]="{'margin-top': '30px'}" nz-button nzType="primary" nzBlock nzSize="large" (click)="login()"
+      [disabled]="disable">登录</button>
   </div>
 </div>

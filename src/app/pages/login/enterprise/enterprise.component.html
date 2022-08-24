@@ -9,7 +9,7 @@
     </div>
     <nz-input-group nzSize="large" [nzPrefix]="golbalIcon" [nzSuffix]="enterpriseClearTpl" [nzStatus]="status">
       <input [disabled]="disabled" (input)="onInput()" (keyup.enter)="selectEnterprise()" nz-input type="text"
-        [(ngModel)]="enterprise" placeholder="企业名称" />
+        [(ngModel)]="enterprise" placeholder="企业名称" style="text-transform:uppercase" />
     </nz-input-group>
     <div style="height: 10px;">
       <p *ngIf="status" style="color: red">{{errorMessage}}</p>
@@ -27,7 +27,7 @@
       <div style="display: flex; align-items: center;">
         <label style="user-select: none;" nz-checkbox [(ngModel)]="checked">自动选择</label>
       </div>
-      <button nz-button nzType="link" routerLink="/login/register">企业注册</button>
+      <button style="padding-right: 0;" nz-button nzType="link" routerLink="/login/register">企业注册</button>
     </div>
     <button [ngStyle]="{'margin-top': '30px'}" nz-button nzType="primary" nzBlock nzSize="large"
       (click)="selectEnterprise()" [disabled]="!enterprise">确认选择</button>

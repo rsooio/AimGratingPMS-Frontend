@@ -1,7 +1,7 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -23,8 +23,21 @@
       "dom"
     ],
     "paths": {
-        "@/*": ["./src/app/*"],
-        "~/*": ["./src/*"],
+      "@/*": [
+        "./src/app/*"
+      ],
+      "~/*": [
+        "./src/*"
+      ],
+      "@shared": [
+        "src/app/shared/index"
+      ],
+      "@core": [
+        "src/app/core/index"
+      ],
+      "@env/*": [
+        "src/environments/*"
+      ]
     }
   },
   "angularCompilerOptions": {

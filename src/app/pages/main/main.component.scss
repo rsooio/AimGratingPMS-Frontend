@@ -31,9 +31,12 @@
 .sidebar-logo {
   position: relative;
   height: 64px;
-  padding-left: 24px;
+  // padding-left: 26px;
   overflow: hidden;
   line-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   background: #001529;
   transition: all .3s;
 }
@@ -46,13 +49,12 @@
 }
 
 .sidebar-logo h1 {
+  margin: 0;
   display: inline-block;
-  margin: 0 0 0 20px;
-  color: #fff;
   font-weight: 600;
   font-size: 14px;
   font-family: Avenir,Helvetica Neue,Arial,Helvetica,sans-serif;
-  vertical-align: middle;
+  // vertical-align: middle;
 }
 
 nz-header {
@@ -77,4 +79,15 @@ nz-content {
   padding: 24px;
   background: #fff;
   height: 100%;
+}
+
+.submenu-logo {
+  font-size: 160%;
+}
+
+.submenu-title {
+  letter-spacing: 1px;
+  font-size: 125%;
+  font-weight: 500;
+  user-select: none;
 }

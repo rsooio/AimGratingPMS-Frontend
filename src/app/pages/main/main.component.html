@@ -1,18 +1,17 @@
 <nz-layout class="app-layout">
-  <nz-sider class="menu-sidebar"
-            nzCollapsible
-            nzWidth="256px"
-            nzBreakpoint="md"
-            [(nzCollapsed)]="isCollapsed"
-            [nzTrigger]="null">
+  <nz-sider class="menu-sidebar" nzCollapsible nzWidth="256px" nzBreakpoint="md" [(nzCollapsed)]="isCollapsed"
+    [nzTrigger]="null">
     <div class="sidebar-logo">
-      <a href="https://ng.ant.design/" target="_blank">
-        <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo">
-        <h1>Ant Design Of Angular</h1>
-      </a>
+      <i *ngIf="isCollapsed" nz-icon nzType="appstore" style="font-size: 250%; color: cyan" nzTheme="outline"></i>
+      <h1 *ngIf="!isCollapsed" style="font-size: 150%; white-space:nowrap; user-select: none; color: cyan;">
+        风口生产销售管理系统
+      </h1>
     </div>
     <ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="isCollapsed">
-      <li nz-submenu nzOpen nzTitle="Dashboard" nzIcon="dashboard">
+      <!-- <li class="menuitem" nz-submenu [(nzOpen)]="openMap['sub1']" (nzOpenChange)="openHandler('sub1')" nzTitle="统计"
+        nzIcon="dashboard"> -->
+      <li class="menuitem" nz-submenu [(nzOpen)]="openMap['sub1']" (nzOpenChange)="openHandler('sub1')">
+        <span title><i class="submenu-logo" nz-icon nzType="dashboard"></i><span class="submenu-title">信息</span></span>
         <ul>
           <li nz-menu-item nzMatchRouter>
             <a routerLink="/welcome">Welcome</a>
@@ -25,7 +24,50 @@
           </li>
         </ul>
       </li>
-      <li nz-submenu nzOpen nzTitle="Form" nzIcon="form">
+      <li nz-submenu [(nzOpen)]="openMap['sub2']" (nzOpenChange)="openHandler('sub2')">
+        <span title><i class="submenu-logo" nz-icon nzType="carry-out"></i><span class="submenu-title">生产</span></span>
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <a>生产管理</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a routerLink="production/technologies">工艺管理</a>
+          </li>
+        </ul>
+      </li>
+      <li nz-submenu [(nzOpen)]="openMap['sub3']" (nzOpenChange)="openHandler('sub3')">
+        <span title><i class="submenu-logo" nz-icon nzType="shop"></i><span class="submenu-title">销售</span></span>
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <a routerLink="sales/orders">全部订单</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a routerLink="sales/typein">订单录入</a>
+          </li>
+          <li nz-menu-item nzMatchRouter>
+            <a routerLink="sales/clients">客户管理</a>
+          </li>
+        </ul>
+      </li>
+      <li nz-submenu [(nzOpen)]="openMap['sub4']" (nzOpenChange)="openHandler('sub4')">
+        <span title><i class="submenu-logo" nz-icon nzType="inbox"></i><span class="submenu-title">仓储</span></span>
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <a>Basic Form</a>
+          </li>
+        </ul>
+      </li>
+      <li nz-submenu [(nzOpen)]="openMap['sub5']" (nzOpenChange)="openHandler('sub5')">
+        <span title><i class="submenu-logo" nz-icon nzType="transaction"></i><span
+            class="submenu-title">财务</span></span>
+        <ul>
+          <li nz-menu-item nzMatchRouter>
+            <a>Basic Form</a>
+          </li>
+        </ul>
+      </li>
+      <li nz-submenu [(nzOpen)]="openMap['sub6']" (nzOpenChange)="openHandler('sub6')">
+        <span title><i class="submenu-logo" nz-icon nzType="idcard"></i><span class="submenu-title">企业</span></span>
         <ul>
           <li nz-menu-item nzMatchRouter>
             <a>Basic Form</a>
@@ -38,10 +80,7 @@
     <nz-header>
       <div class="app-header">
         <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
-            <i class="trigger"
-               nz-icon
-               [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"
-            ></i>
+          <i class="trigger" nz-icon [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'"></i>
         </span>
       </div>
     </nz-header>

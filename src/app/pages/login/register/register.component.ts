@@ -1,7 +1,7 @@
 import { Router } from '@angular/router';
 import { DataService } from './../../../services/data/data.service';
 import { catchError } from 'rxjs/operators';
-import { OrganizationService } from '@/services/organization/organization.service';
+import { OrganizationService } from '@/services/api/organization/organization.service';
 import { NzStatus } from 'ng-zorro-antd/core/types';
 import { Component, OnInit } from '@angular/core';
 
@@ -73,6 +73,8 @@ export class RegisterComponent implements OnInit {
   }
 
   registerEnterprise() {
+    if (this.enterprise == null) return
+    this.enterprise = this.enterprise.toUpperCase()
     this.disabled = true
     let address = this.address ? this.address : ''
     this.organization.createEnterprise({
@@ -83,8 +85,8 @@ export class RegisterComponent implements OnInit {
     }).subscribe({
       next: m => {
         if (m.code == 0) {
-          this.data.enterprise.id = m.data.id
-          this.data.enterprise.name = <string>this.enterprise
+          // this.data.enterprise.id = m.data.id
+          // this.data.enterprise.name = <string>this.enterprise
           this.router.navigate(['/login/staffer'])
         } else {
           this.enterpriseStatus = 'error'

@@ -10,7 +10,7 @@
     <nz-input-group class="input" nzSize="large" [nzStatus]="enterpriseStatus" [nzPrefix]="golbalIcon"
       [nzSuffix]="enterpriseClearTpl">
       <input [disabled]="disabled" (input)="onEnterpriseInput()" nz-input type="text" [(ngModel)]="enterprise"
-        maxlength="30" placeholder="企业名称" />
+        maxlength="30" placeholder="企业名称" style="text-transform:uppercase" />
     </nz-input-group>
     <nz-input-group class="input" nzSize="large" [nzPrefix]="userIcon" [nzSuffix]="usernameClearTpl">
       <input [disabled]="disabled" (input)="onUsernameInput()" nz-input type="text" [(ngModel)]="username"
