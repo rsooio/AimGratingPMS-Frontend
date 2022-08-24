@@ -2,6 +2,7 @@ import { min, Observable } from 'rxjs';
 import { AirGratingDatabase } from './../../schemas/RxDB.d';
 import { DbService } from './../db/db.service';
 import { Injectable } from '@angular/core';
+import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
 
 interface temp {
   name: string | null
@@ -27,11 +28,23 @@ export class DataService {
     6: '已结清',
   }
 
+  AIR_GRATING_TYPE: string[] = [
+    '出风口',
+    '回风口',
+    '检修口'
+  ]
+
+  AirGratingOptions: NzSelectOptionInterface[] = [];
+
   constructor(
     private dbService: DbService
   ) {
     this.refreshInfo();
     (window as any)['data'] = this;
+    this.AIR_GRATING_TYPE.forEach(v => this.AirGratingOptions.push({
+      label: v,
+      value: v,
+    }))
   }
 
   get db() {

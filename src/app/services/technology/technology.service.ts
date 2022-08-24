@@ -51,7 +51,6 @@ export class TechnologyService {
       .filter(k => this._technologies[k]['name'])
       .forEach(k => {
         this.cache[k] = this._technologies[k]['name']
-        this.options[k] = [];
         this.options['technology'].push({
           label: this._technologies[k]['name'],
           value: k,
@@ -59,11 +58,11 @@ export class TechnologyService {
         })
         const textures = this._technologies[k]['textures']
         if (!textures) return;
+        this.options[k] = [];
         Object.keys(textures)
           .filter(l => textures[l]['name'])
           .forEach(l => {
             this.cache[k + l] = textures[l]['name'];
-            this.options[k + l] = [];
             this.options[k].push({
               label: textures[l]['name'],
               value: l,
@@ -71,6 +70,7 @@ export class TechnologyService {
             })
             const colors = textures[l]['colors'];
             if (!colors) return;
+            this.options[k + l] = [];
             Object.keys(colors)
               .filter(m => colors[m]['name'])
               .forEach(m => {

@@ -1,3 +1,4 @@
+import { UtilsService } from './../../../../services/utils/utils.service';
 import { ClientService } from './../../../../services/client/client.service';
 import { DataService } from '@/services/data/data.service';
 import { DbService } from '@/services/db/db.service';
@@ -12,25 +13,34 @@ import { Component, OnInit } from '@angular/core';
 })
 export class ClientComponent implements OnInit {
   createClientButtonDisabled = false
+  loading = true;
+  clients: PouchDB.Core.ExistingDocument<{ [x: string]: any; }>[] = [];
 
   constructor(
-    private client: ClientService,
-    public data: DataService,
-    public pinyin: PinyinService,
-    private random: RandomService,
-    private db: DbService,
+    private clientService: ClientService,
+    public dataService: DataService,
+    public pinyinService: PinyinService,
+    private randomService: RandomService,
+    private dbService: DbService,
+    public utilsService: UtilsService,
   ) { }
 
-  get dataList() {
-    return Object.keys(this.client.data)
-      .sort((a, b) => this.dataItem(b)['create_time'] - this.dataItem(a)['create_time'])
-  }
-
-  dataItem(key: string) {
-    return this.client.data[key]
-  }
-
   ngOnInit(): void {
+    setTimeout(() => {
+      this.loading = false;
+      this.clientService.pdata()
+        .then(m => this.clients = Object.values(m)
+          .sort((a, b) => b['create_time'] - a['create_time'])
+        )
+      this.dbService.db.client.Pipe.subscribe(m => {
+        if (m['_deleted']) {
+          this.clients.splice(this.clients.findIndex(v => v._id === m._id), 1);
+        } else {
+          this.clients[this.clients.findIndex(v => v._id === m._id)] = m;
+        }
+        this.clients = this.clients.slice();
+      })
+    }, 0);
   }
 
   change(data: { [x: string]: any }) {
@@ -39,22 +49,22 @@ export class ClientComponent implements OnInit {
     }
     if (data['change']) {
       delete data['change'];
-      this.db.db.client.Local
+      this.dbService.db.client.Local
         ?.put(data);
     }
   }
 
   createClient() {
-    this.random.string(4)
+    this.randomService.string(4)
       .then(id => {
-        this.db.db.client.Local
+        this.dbService.db.client.Local
           ?.get(id)
           .then(() => this.createClient())
           .catch(() => {
-            this.db.db.client.Local
+            this.dbService.db.client.Local
               ?.put({
                 _id: id,
-                workshop: this.data.info.workshop,
+                workshop: this.dataService.info.workshop,
                 create_time: new Date().getTime(),
                 unit_price: {}
               })
@@ -63,11 +73,11 @@ export class ClientComponent implements OnInit {
       })
   }
 
-  delete(key: string) {
-    this.db.db.client.Local
+  delete(data: PouchDB.Core.ExistingDocument<{ [x: string]: any; }>) {
+    this.dbService.db.client.Local
       ?.put({
-        _id: key,
-        _rev: this.dataItem(key)._rev,
+        _id: data._id,
+        _rev: data._rev,
         _deleted: true
       })
   }

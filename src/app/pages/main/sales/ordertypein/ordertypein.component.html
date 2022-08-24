@@ -11,51 +11,51 @@
       <nz-page-header-content>
         <div style="display: flex;">
           <nz-statistic nzTitle="录入中" [nzValue]="editList.length" nzSuffix="个"></nz-statistic>
-          <nz-statistic nzTitle="已录入" [nzValue]="dataList.length - editList.length" nzSuffix="个" style="margin: 0 32px">
+          <nz-statistic nzTitle="已录入" [nzValue]="orders.length - editList.length" nzSuffix="个" style="margin: 0 32px">
           </nz-statistic>
           <nz-statistic *ngIf="dataService.info.role === 'boss'" nzTitle="录入价格" style=" margin-right: 32px;"
             [nzValue]="price.toFixed(2)" nzPrefix="¥">
           </nz-statistic>
           <nz-statistic *ngIf="dataService.info.role === 'boss'" nzTitle="平均价格" style=" margin-right: 32px;"
-            [nzValue]="(price / dataList.length).toFixed(2)" nzPrefix="¥">
+            [nzValue]="orders.length ? (price / orders.length).toFixed(2) : '0.00'" nzPrefix="¥">
           </nz-statistic>
         </div>
       </nz-page-header-content>
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="dataList" [nzPageSize]="(document.body.offsetHeight - 420) / 55">
+    <nz-table #basicTable [nzData]="orders" [nzPageSize]="dataService.getPageSize(430, 44)" [nzLoading]="loading">
       <!--document.body.offsetHeight-->
       <thead>
         <tr>
           <th nzAlign="center" width="120px">订单号</th>
           <th nzAlign="center">客户</th>
           <th nzAlign="center">面积</th>
-          <th nzAlign="center" *ngIf="role == 'boss'">价格</th>
+          <th nzAlign="center" *ngIf="dataService.info.role == 'boss'">价格</th>
           <th nzAlign="center">状态</th>
           <th nzAlign="center">操作</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let data of basicTable.data">
+        <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex">
           <td nzAlign="center" style="font-family: monospace;">
             <div class="not-editable-cell">
               {{data['_id'].toUpperCase()}}
             </div>
           </td>
           <td nzAlign="center">
-            <div class="not-editable-cell">
-              {{data['client']}}
+            <div class="not-editable-cell" [ngStyle]="{'color': data['client'] ? 'black' : 'lightgrey'}">
+              {{data['client'] ? data['client'] : '未选择用户'}}
             </div>
           </td>
           <td nzAlign="center">
-            <div class="not-editable-cell">
-              {{data['area'] ? data['area'].toFixed(2) + ' ㎡' : '0'}}
+            <div class="not-editable-cell" [ngStyle]="{'color': data['area'] ? 'black' : 'lightgrey'}">
+              {{data['area'] ? data['area'].toFixed(2) + ' ㎡' : '—'}}
             </div>
           </td>
-          <td nzAlign="center" *ngIf="role == 'boss'">
-            <div class="not-editable-cell">
-              {{'¥ ' + data['price']}}
+          <td nzAlign="center" *ngIf="dataService.info.role == 'boss'">
+            <div class="not-editable-cell" [ngStyle]="{'color': data['price'] ? 'black' : 'lightgrey'}">
+              {{data['price'] ? '¥ ' + data['price'] : '—'}}
             </div>
           </td>
           <td nzAlign="center">
@@ -66,7 +66,7 @@
           <td nzAlign="center">
             <a [routerLink]="data['_id']">编辑</a>
             <nz-divider nzType="vertical"></nz-divider>
-            <a (click)="delete(data._id)">删除</a>
+            <a (click)="delete(data['_id'])">删除</a>
           </td>
         </tr>
       </tbody>

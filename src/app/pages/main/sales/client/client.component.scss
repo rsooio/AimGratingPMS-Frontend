@@ -29,15 +29,3 @@
 :host ::ng-deep .ant-empty-image {
   height: 40px;
 }
-
-.editable-cell {
-  position: relative;
-  padding: 5px 12px;
-  cursor: pointer;
-}
-
-.editable-unit:hover .editable-cell {
-  border: 1px solid #d9d9d9;
-  border-radius: 4px;
-  padding: 3px 11px;
-}

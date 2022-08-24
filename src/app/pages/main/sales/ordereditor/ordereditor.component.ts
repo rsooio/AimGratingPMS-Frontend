@@ -1,3 +1,4 @@
+import { UtilsService } from './../../../../services/utils/utils.service';
 import { ClientService } from './../../../../services/client/client.service';
 import { PinyinService } from './../../../../services/pinyin/pinyin.service';
 import { RandomService } from './../../../../services/random/random.service';
@@ -35,6 +36,7 @@ export class OrdereditorComponent implements OnInit {
     private router: Router,
     public pinyin: PinyinService,
     public clientService: ClientService,
+    public utilsService: UtilsService,
   ) { }
 
   ngOnInit(): void {

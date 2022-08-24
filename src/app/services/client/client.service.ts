@@ -10,6 +10,7 @@ import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
 export class ClientService {
   options: (NzSelectOptionInterface & { [x: string]: string })[] = [];
   cache: { [x: string]: string } = {};
+  init: Promise<void>;
 
   constructor(
     private db: DbService,
@@ -28,7 +29,7 @@ export class ClientService {
           this.transfer()
         }
       })
-    this.db.db.client.Local?.find({
+    this.init = this.db.db.client.Local!.find({
       selector: {
         workshop: 'a'
       }
@@ -62,6 +63,11 @@ export class ClientService {
 
   get data() {
     return this._clients
+  }
+
+  async pdata() {
+    await this.init;
+    return this._clients;
   }
 
   unit_price(clientKey: string, technologyKey: string, textureKey?: string, colorKey?: string) {

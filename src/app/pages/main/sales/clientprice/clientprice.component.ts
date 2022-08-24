@@ -1,3 +1,4 @@
+import { UtilsService } from './../../../../services/utils/utils.service';
 import { ClientService } from './../../../../services/client/client.service';
 import { DataService } from '@/services/data/data.service';
 import { DbService } from '@/services/db/db.service';
@@ -6,6 +7,7 @@ import { RandomService } from '@/services/random/random.service';
 import { TechnologyService } from '@/services/technology/technology.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-clientprice',
@@ -17,25 +19,48 @@ export class ClientpriceComponent implements OnInit {
   expandSet = new Set<string>();
   hidden = '';
   change = false;
+  loading = true;
+  prices: { [x: string]: any } = {};
+  client: { [x: string]: any; } = {};
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    public data: DataService,
-    private technologies: TechnologyService,
-    private clients: ClientService,
-    public pinyin: PinyinService,
-    private random: RandomService,
-    private db: DbService,
+    private randomService: RandomService,
+    public technologyService: TechnologyService,
+    private clientService: ClientService,
+    private dbService: DbService,
+    public dataService: DataService,
+    public pinyinService: PinyinService,
+    public utilsService: UtilsService,
   ) {
+    (window as any)['clientprice'] = this;
+  }
+
+  get types() {
+    return ['默认', ...this.dataService.AIR_GRATING_TYPE]
+  }
+
+  ngOnInit(): void {
     this.route.params.subscribe({
       next: m => {
         this.clientId = m['client']
       }
     })
+    setTimeout(() => {
+      this.loading = false;
+      this.clientService.pdata()
+        .then(m => this.fetchData(m[this.clientId]))
+      this.dbService.db.order.Pipe
+        ?.pipe(filter(m => m._id == this.clientId))
+        .subscribe(m => this.fetchData(m))
+    }, 0);
   }
 
-  ngOnInit(): void {
+  fetchData(client: { [x: string]: any }) {
+    if (!client || !client['unit_price']) return;
+    this.client = client;
+    this.prices = client['unit_price'];
   }
 
   onBack() {
@@ -50,14 +75,14 @@ export class ClientpriceComponent implements OnInit {
     }
   }
 
-  get client(): { [x: string]: any } {
-    if (this.clients.data[this.clientId]) {
-      return this.clients.data[this.clientId]
+  get _client(): { [x: string]: any } {
+    if (this.clientService.data[this.clientId]) {
+      return this.clientService.data[this.clientId]
     }
     return {}
   }
 
-  get priceList(): { [x: string]: any } {
+  get _priceList(): { [x: string]: any } {
     if (this.client['unit_price']) {
       return this.client['unit_price']
     }
@@ -65,18 +90,18 @@ export class ClientpriceComponent implements OnInit {
   }
 
   get technologyList(): string[] {
-    const technologies = Object.keys(this.technologies.data)
-      .sort((a, b) => this.technologies.data[b]['create_time'] - this.technologies.data[a]['create_time'])
+    const technologies = Object.keys(this.technologyService.data)
+      .sort((a, b) => this.technologyService.data[b]['create_time'] - this.technologyService.data[a]['create_time'])
     return technologies
   }
 
   technologyItem(key: string) {
-    return this.technologies.data[key]
+    return this.technologyService.data[key]
   }
 
   textureList(technologyKey: string) {
-    if (this.technologies.data[technologyKey]['textures']) {
-      return Object.keys(this.technologies.data[technologyKey]['textures'])
+    if (this.technologyService.data[technologyKey]['textures']) {
+      return Object.keys(this.technologyService.data[technologyKey]['textures'])
     }
     return []
   }
@@ -86,8 +111,8 @@ export class ClientpriceComponent implements OnInit {
   }
 
   colorList(technologyKey: string, textureKey: string) {
-    if (this.technologies.data[technologyKey]['textures'][textureKey]['colors']) {
-      return Object.keys(this.technologies.data[technologyKey]['textures'][textureKey]['colors'])
+    if (this.technologyService.data[technologyKey]['textures'][textureKey]['colors']) {
+      return Object.keys(this.technologyService.data[technologyKey]['textures'][textureKey]['colors'])
     }
     return []
   }
@@ -107,7 +132,7 @@ export class ClientpriceComponent implements OnInit {
     this.hidden = ''
     if (this.change) {
       this.change = false
-      this.db.db.client.Local
+      this.dbService.db.client.Local
         ?.put(this.client)
     }
   }

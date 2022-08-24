@@ -12,7 +12,7 @@
       <nz-page-header-content>
         <!-- <div style="display: flex; justify-content: space-between;"> -->
         <div style="display: flex;">
-          <nz-statistic nzTitle="数量" [nzValue]="dataList.length" nzSuffix="个"></nz-statistic>
+          <nz-statistic nzTitle="数量" [nzValue]="clients.length" nzSuffix="个"></nz-statistic>
           <!-- <div style="display: flex; flex-wrap: wrap; width: 50%;">
             <div style="width: 30%" class="input-cell">
               <p nz-typography nzEditable>客户：美的黄总</p>
@@ -68,73 +68,79 @@
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="dataList">
+    <nz-table #basicTable [nzData]="clients" nzTableLayout="fixed" [nzPageSize]="dataService.getPageSize(410, 45)"
+      [nzLoading]="loading">
       <thead>
         <tr>
-          <th>名称</th>
-          <th>默认售价</th>
-          <th>描述</th>
-          <th>联系方式</th>
-          <th>联系人</th>
-          <th>备注</th>
-          <th>操作</th>
+          <th nzAlign="center">名称</th>
+          <th nzAlign="center">默认售价</th>
+          <th nzAlign="center">描述</th>
+          <th nzAlign="center">联系人</th>
+          <th nzAlign="center">联系方式</th>
+          <th nzAlign="center">备注</th>
+          <th nzAlign="center">操作</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let key of basicTable.data">
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 1" (click)="dataItem(key)['edit'] = 1">
-              {{dataItem(key)['name'] ? dataItem(key)['name'] : '无数据'}}
+        <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex">
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data['edit'] !== 1" (click)="data['edit'] = 1"
+              [ngStyle]="{'color': data['name'] ? 'black' : 'lightgrey'}">
+              {{data['name'] ? data['name'] : '请输入称呼'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 1" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['name']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 1"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 1" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" *ngIf="data['edit'] === 1" (blur)="change(data)" [(ngModel)]="data['name']"
+              [cdkTrapFocusAutoCapture]="data['edit'] === 1" [cdkTrapFocus]="data['edit'] === 1"
+              (ngModelChange)="data['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 2" (click)="dataItem(key)['edit'] = 2">
-              {{dataItem(key)['unit_price']['default'] ? dataItem(key)['unit_price']['default'] : '-'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data['edit'] !== 2" (click)="data['edit'] = 2"
+              [ngStyle]="{'color': data['unit_price']['default'] ? 'black' : 'lightgrey'}">
+              {{data['unit_price']['default'] ? data['unit_price']['default'] : '请输入默认售价'}}
             </div>
-            <input nz-input type="number" [hidden]="dataItem(key)['edit'] !== 2" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['unit_price']['default']"
-              [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 2" [cdkTrapFocus]="dataItem(key)['edit'] === 2"
-              (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="number" *ngIf="data['edit'] === 2" (blur)="change(data)"
+              [(ngModel)]="data['unit_price']['default']" [cdkTrapFocusAutoCapture]="data['edit'] === 2"
+              [cdkTrapFocus]="data['edit'] === 2" (ngModelChange)="data['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 3" (click)="dataItem(key)['edit'] = 3">
-              {{dataItem(key)['describe'] ? dataItem(key)['describe'] : '无数据'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data['edit'] !== 3" (click)="data['edit'] = 3"
+              [ngStyle]="{'color': data['describe'] ? 'black' : 'lightgrey'}">
+              {{data['describe'] ? data['describe'] : '—'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 3" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['describe']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 3"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 3" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" *ngIf="data['edit'] === 3" (blur)="change(data)" [(ngModel)]="data['describe']"
+              [cdkTrapFocusAutoCapture]="data['edit'] === 3" [cdkTrapFocus]="data['edit'] === 3"
+              (ngModelChange)="data['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 4" (click)="dataItem(key)['edit'] = 4">
-              {{dataItem(key)['link'] ? dataItem(key)['link'] : '无数据'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data['edit'] !== 5" (click)="data['edit'] = 5"
+              [ngStyle]="{'color': data['linkman'] ? 'black' : 'lightgrey'}">
+              {{data['linkman'] ? data['linkman'] : '—'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 4" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['link']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 4"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 4" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" *ngIf="data['edit'] === 5" (blur)="change(data)" [(ngModel)]="data['linkman']"
+              [cdkTrapFocusAutoCapture]="data['edit'] === 5" [cdkTrapFocus]="data['edit'] === 5"
+              (ngModelChange)="data['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 5" (click)="dataItem(key)['edit'] = 5">
-              {{dataItem(key)['linkman'] ? dataItem(key)['linkman'] : '-'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data['edit'] !== 4" (click)="data['edit'] = 4"
+              [ngStyle]="{'color': data['link'] ? 'black' : 'lightgrey'}">
+              {{data['link'] ? data['link'] : '—'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 5" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['linkman']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 5"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 5" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" *ngIf="data['edit'] === 4" (blur)="change(data)" [(ngModel)]="data['link']"
+              [cdkTrapFocusAutoCapture]="data['edit'] === 4" [cdkTrapFocus]="data['edit'] === 4"
+              (ngModelChange)="data['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 6" (click)="dataItem(key)['edit'] = 6">
-              {{dataItem(key)['remark'] ? dataItem(key)['remark'] : '-'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" *ngIf="data['edit'] !== 6" (click)="data['edit'] = 6"
+              [ngStyle]="{'color': data['remark'] ? 'black' : 'lightgrey'}">
+              {{data['remark'] ? data['remark'].trim() ? data['remark'] : '&nbsp;' : '&nbsp;'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 6" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['remark']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 6"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 6" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" *ngIf="data['edit'] === 6" (blur)="change(data)" [(ngModel)]="data['remark']"
+              [cdkTrapFocusAutoCapture]="data['edit'] === 6" [cdkTrapFocus]="data['edit'] === 6"
+              (ngModelChange)="data['change'] = true" />
           </td>
-          <td>
-            <a [routerLink]="key">售价管理</a>
+          <td nzAlign="center" nzEllipsis>
+            <a [routerLink]="data._id">售价管理</a>
             <nz-divider nzType="vertical"></nz-divider>
-            <a (click)="delete(key)">删除</a>
+            <a (click)="delete(data)">删除</a>
           </td>
         </tr>
       </tbody>

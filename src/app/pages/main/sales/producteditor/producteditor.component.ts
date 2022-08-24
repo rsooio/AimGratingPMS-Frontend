@@ -1,3 +1,4 @@
+import { UtilsService } from './../../../../services/utils/utils.service';
 import { ClientService } from './../../../../services/client/client.service';
 import { DataService } from '@/services/data/data.service';
 import { TechnologyService } from './../../../../services/technology/technology.service';
@@ -9,7 +10,7 @@ import { OrderService } from './../../../../services/order/order.service';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { filter, Observable, Subscriber } from 'rxjs';
-import { NzFilterOptionType, NzOptionComponent } from 'ng-zorro-antd/select';
+import { NzFilterOptionType, NzOptionComponent, NzSelectOptionInterface } from 'ng-zorro-antd/select';
 import { NzTableComponent } from 'ng-zorro-antd/table';
 
 @Component({
@@ -26,7 +27,6 @@ export class ProducteditorComponent implements OnInit {
   products: { [x: string]: any }[] = [];
   loading = true;
   document = document
-  @ViewChild('basicTable') table: NzTableComponent<{ [x: string]: any; }> | undefined;
 
 
   constructor(
@@ -38,6 +38,7 @@ export class ProducteditorComponent implements OnInit {
     public technologies: TechnologyService,
     public dataService: DataService,
     private clientService: ClientService,
+    public utilsService: UtilsService,
   ) {
     (window as any)['debug'] = this;
   }
@@ -109,9 +110,18 @@ export class ProducteditorComponent implements OnInit {
   }
 
   createProduct() {
-    this.products.push({
-    })
-    console.log(this.order)
+    let insert: { [x: string]: any } = {};
+    if (this.products.length) {
+      const last = this.products.slice(-1)[0];
+      if (last['technology']) insert['technology'] = last['technology'];
+      if (last['texture']) insert['texture'] = last['texture'];
+      if (last['color']) insert['color'] = last['color'];
+      if (last['type'] === '出风口') insert['type'] = '回风口';
+      else if (last['type'] === '回风口') insert['type'] = '出风口';
+      else if (last['type']) insert['type'] = last['type'];
+      if (last['unit_price']) insert['unit_price'] = last['unit_price'];
+    }
+    this.products.push(insert);
     this.db.db.order.Local
       ?.put(this.order)
     // .catch(() => {
@@ -170,14 +180,12 @@ export class ProducteditorComponent implements OnInit {
 
   delete(data: { [x: string]: any }) {
     const index = this.products.indexOf(data);
-    if (index) {
+    if (index != -1) {
       this.products.splice(index, 1);
       this.db.db.order.Local
         ?.put(this.order);
     }
   }
 
-  trackByIndex(index: number, item: { [x: string]: any }) {
-    return index;
-  }
+
 }

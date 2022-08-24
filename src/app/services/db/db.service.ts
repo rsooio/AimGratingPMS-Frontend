@@ -96,17 +96,26 @@ export class DbService {
     console.log(connect.name, 'connected.')
     connect.Changes
       ?.on('change', m => {
-        connect.Local?.get(m.id)
-          .then(m => {
-            connect.Pipe.next(m);
-            console.log(connect.name, 'changed.')
+        console.log(connect.name, 'changed.')
+        if (m.deleted) {
+          connect.Pipe.next({
+            '_deleted': true,
+            '_id': m.id,
+            '_rev': m.changes[0].rev
           })
-          .catch(e => connect.Pipe.error(e))
+        } else {
+          connect.Local?.get(m.id)
+            .then(m => {
+              connect.Pipe.next(m);
+            })
+            .catch(e => connect.Pipe.error(e))
+        }
       })
       .on('error', e => {
         connect.Pipe.error(e)
       })
       .on('complete', f => {
+        console.log('unsubscribe')
         connect.Pipe.unsubscribe()
       })
   }

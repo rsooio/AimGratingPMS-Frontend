@@ -109,7 +109,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let data of basicTable.data; trackBy: trackByIndex; index as i">
+        <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
           <!-- pinyin.firstLetter(technologies.cache[key] ? technologies.cache[key] : '') -->
           <td nzAlign="center">
             {{(basicTable.nzPageIndex - 1) * basicTable.nzPageSize + i + 1}}
@@ -172,15 +172,9 @@
               {{data['type'] ? data['type'] : '请选择'}}
             </div>
             <nz-select style="position: relative; width: 100%" *ngIf="data['edit'] === 10" nzShowSearch
-              nzPlaceHolder="选择类型" [nzCustomTemplate]="selected_color" [(ngModel)]="data['type']"
+              nzPlaceHolder="选择类型" [(ngModel)]="data['type']" [nzOptions]="dataService.AirGratingOptions"
               (ngModelChange)="select(data)" [nzOpen]="data['edit'] === 10" (nzBlur)="clearFocus(data)"
               [cdkTrapFocusAutoCapture]="data['edit'] === 10" [cdkTrapFocus]="data['edit'] === 10">
-              <nz-option nzValue="出风口" nzLabel="cfk" nzCustomContent="true">出风口</nz-option>
-              <nz-option nzValue="回风口" nzLabel="hfk" nzCustomContent="true">回风口</nz-option>
-              <nz-option nzValue="检修口" nzLabel="jxk" nzCustomContent="true">检修口</nz-option>
-              <ng-template #selected_color let-selected>
-                {{ selected.nzValue }}
-              </ng-template>
             </nz-select>
           </td>
           <td class="editable-unit" nzEllipsis=true nzAlign="center">

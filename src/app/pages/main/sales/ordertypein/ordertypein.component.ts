@@ -1,3 +1,4 @@
+import { UtilsService } from './../../../../services/utils/utils.service';
 import { DataService } from '@/services/data/data.service';
 import { DbService } from '@/services/db/db.service';
 import { OrderService } from '@/services/order/order.service';
@@ -10,25 +11,50 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./ordertypein.component.scss']
 })
 export class OrdertypeinComponent implements OnInit {
-  workshop: string | null;
-  role: string | null;
   document = document
+  loading: boolean = true;
+  orders: { [x: string]: any }[] = [];
 
   constructor(
     private db: DbService,
-    private order: OrderService,
+    private orderService: OrderService,
     private random: RandomService,
-    public dataService: DataService
-  ) {
-    this.workshop = sessionStorage.getItem('workshop')
-    this.role = sessionStorage.getItem('role')
-  }
+    public dataService: DataService,
+    public utilsService: UtilsService,
+  ) { }
 
   ngOnInit(): void {
+    setTimeout(() => {
+      this.loading = false;
+      this.orderService.pdata()
+        .then(m => this.orders = Object.values(m)
+          .filter(this.filter)
+          .sort((a, b) => b['create_time'] - a['create_time'])
+        )
+      this.db.db.order.Pipe.subscribe(m => {
+        if (m['_deleted']) {
+          this.orders.splice(this.orders.findIndex(v => v['_id'] === m['_id']), 1);
+        } else {
+          this.orders.unshift(m);
+        }
+        this.orders = this.orders.slice();
+      })
+    }, 0);
   }
 
-  get dataList() {
-    return Object.values(this.order.data)
+  filter(v: { [x: string]: any }) {
+    if (v['state'] === 0) {
+      return true;
+    }
+    if (v['state'] === 1 && v['typein_time']) {
+      const dateStamp = new Date(new Date().toLocaleDateString()).getTime() + 18000000;
+      return v['typein_time'] > dateStamp;
+    }
+    return false;
+  }
+
+  get _dataList() {
+    return Object.values(this.orderService.data)
       .filter(v => {
         if (v['state'] === 0) {
           return true;
@@ -43,18 +69,18 @@ export class OrdertypeinComponent implements OnInit {
   }
 
   get editList() {
-    return this.dataList.filter(v => v['state'] === 0)
+    return this.orders.filter(v => v['state'] === 0)
   }
 
   get price() {
-    return this.dataList.reduce((prev, curr) => curr['price'] ? prev + curr['price'] : prev, 0);
+    return this.orders.reduce((prev, curr) => curr['price'] ? prev + curr['price'] : prev, 0);
   }
 
   delete(id: string) {
     this.db.db.order.Local
       ?.put({
         _id: id,
-        _rev: this.order.data[id]._rev,
+        _rev: this.orderService.data[id]._rev,
         _deleted: true
       })
   }
@@ -69,7 +95,7 @@ export class OrdertypeinComponent implements OnInit {
             this.db.db.order.Local
               ?.put({
                 _id: id,
-                workshop: this.workshop,
+                workshop: this.dataService.info.workshop,
                 create_time: new Date().getTime(),
                 area: 0,
                 price: 0,
