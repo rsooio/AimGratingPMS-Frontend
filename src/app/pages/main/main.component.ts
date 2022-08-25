@@ -1,4 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { filter, first } from 'rxjs';
+import { ActivatedRoute, Router, NavigationEnd, ActivatedRouteSnapshot, RouterLink, UrlTree, RouterStateSnapshot } from '@angular/router';
+import { Component, OnInit, ViewChild, ElementRef, Optional } from '@angular/core';
 
 @Component({
   selector: 'app-main',
@@ -6,15 +8,18 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./main.component.scss']
 })
 export class MainComponent implements OnInit {
+  @ViewChild('outlet') outlet: any;
 
-  constructor() { }
+  constructor(
+    private router: Router,
+  ) { }
 
   ngOnInit(): void {
   }
 
   isCollapsed = false;
-  openMap: { [name: string]: boolean } = {
-    sub1: true,
+  openMap: { [name: string]: boolean | undefined } = {
+    sub1: false,
     sub2: false,
     sub3: false,
     sub4: false,
@@ -29,5 +34,4 @@ export class MainComponent implements OnInit {
       }
     }
   }
-
 }

@@ -19,13 +19,15 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { TextureComponent } from './texture/texture.component';
 import { ColorComponent } from './color/color.component';
+import { ScheduleComponent } from './schedule/schedule.component';
 
 
 @NgModule({
   declarations: [
     TechnologyComponent,
     TextureComponent,
-    ColorComponent
+    ColorComponent,
+    ScheduleComponent
   ],
   imports: [
     CommonModule,

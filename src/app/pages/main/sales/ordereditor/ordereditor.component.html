@@ -30,17 +30,17 @@
           <nz-statistic *ngIf="true" nzTitle="价格" style=" margin-right: 32px;"
             [nzValue]="order['price'] ? order['price'] : 0" nzPrefix="¥">
           </nz-statistic>
-          <!-- <div style="flex-grow: 1;">
-            <div>select</div>
-            <nz-select *ngIf="false" nzShowSearch nzPlaceHolder="选择用户" nzLoading="false" nzDisabled="false"
-              (ngModelChange)="change($event)" [(ngModel)]="order['client']" [nzOptions]="clientService.options"
-              [nzFilterOption]="pinyin.SearchByPinyin">
-            </nz-select>
-          </div> -->
+          <!--          <div style="flex-grow: 1;">-->
+          <!--            <div>select</div>-->
+          <!--            <nz-select *ngIf="false" nzShowSearch nzPlaceHolder="选择用户" nzLoading="false" nzDisabled="false"-->
+          <!--              (ngModelChange)="change($event)" [(ngModel)]="order['client']" [nzOptions]="clientService.options"-->
+          <!--              [nzFilterOption]="pinyin.SearchByPinyin">-->
+          <!--            </nz-select>-->
+          <!--          </div>-->
           <table style="flex-grow: 1;">
             <tbody>
               <tr>
-                <td class="unit" width="1%">
+                <td class="unit" width="25%">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 1" (click)="order['edit'] = 1"
                     [ngStyle]="{'color': order['client'] ? 'black' : 'lightgrey'}">
                     {{'客户：' + (order['client'] ? clientService.cache[order['client']] : '—')}}
@@ -52,25 +52,25 @@
                     [cdkTrapFocusAutoCapture]="order['edit'] === 1" [cdkTrapFocus]="order['edit'] === 1">
                   </nz-select>
                 </td>
-                <td class="unit" width="1%">
+                <td class="unit" width="25%">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 2" (click)="order['edit'] = 2"
                     [ngStyle]="{'color': order['linkman'] ? 'black' : 'lightgrey'}">
                     {{'联系人：' + (order['linkman'] ? order['linkman'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" *ngIf="order['edit'] === 2" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 2" (blur)="update(order)"
                     [(ngModel)]="order['linkman']" [cdkTrapFocusAutoCapture]="order['edit'] === 2"
                     [cdkTrapFocus]="order['edit'] === 2" (ngModelChange)="order['change'] = true" />
                 </td>
-                <td class="unit" width="1%">
+                <td class="unit" width="25%">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 3" (click)="order['edit'] = 3"
                     [ngStyle]="{'color': order['link'] ? 'black' : 'lightgrey'}">
                     {{'联系方式：' + (order['link'] ? order['link'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" *ngIf="order['edit'] === 3" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 3" (blur)="update(order)"
                     [(ngModel)]="order['link']" [cdkTrapFocusAutoCapture]="order['edit'] === 3"
                     [cdkTrapFocus]="order['edit'] === 3" (ngModelChange)="order['change'] = true" />
                 </td>
-                <td class="unit" style="height: 100%;" width="1%" rowspan="2">
+                <td class="unit" style="height: 100%;" width="25%" rowspan="2">
                   <div class="cell" style="display: block; height: 58px;" *ngIf="order['edit'] !== 4"
                     (click)="order['edit'] = 4" [ngStyle]="{'color': order['remark'] ? 'black' : 'lightgrey'}">
                     {{'备注：' + (order['remark'] ? order['remark'] : '—')}}
@@ -82,21 +82,21 @@
                 </td>
               </tr>
               <tr>
-                <td class="unit" width="1%">
+                <td class="unit" width="25%">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 5" (click)="order['edit'] = 5"
                     [ngStyle]="{'color': order['code'] ? 'black' : 'lightgrey'}">
                     {{'客编：' + (order['code'] ? order['code'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" *ngIf="order['edit'] === 5" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 5" (blur)="update(order)"
                     [(ngModel)]="order['code']" [cdkTrapFocusAutoCapture]="order['edit'] === 5"
                     [cdkTrapFocus]="order['edit'] === 5" (ngModelChange)="order['change'] = true" />
                 </td>
-                <td class="unit" width="1%" colspan="2">
+                <td class="unit" width="50%" colspan="2">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 6" (click)="order['edit'] = 6"
                     [ngStyle]="{'color': order['address'] ? 'black' : 'lightgrey'}">
                     {{'地址：' + (order['address'] ? order['address'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" *ngIf="order['edit'] === 6" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 6" (blur)="update(order)"
                     [(ngModel)]="order['address']" [cdkTrapFocusAutoCapture]="order['edit'] === 6"
                     [cdkTrapFocus]="order['edit'] === 6" (ngModelChange)="order['change'] = true" />
                 </td>

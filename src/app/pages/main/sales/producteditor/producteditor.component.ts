@@ -39,9 +39,7 @@ export class ProducteditorComponent implements OnInit {
     public dataService: DataService,
     private clientService: ClientService,
     public utilsService: UtilsService,
-  ) {
-    (window as any)['debug'] = this;
-  }
+  ) { }
 
   fetchData(order: { [x: string]: any }) {
     if (!order) return;

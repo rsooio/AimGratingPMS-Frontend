@@ -29,7 +29,7 @@ import { A11yModule } from '@angular/cdk/a11y';
 import { ClientComponent } from './client/client.component';
 import { ClientpriceComponent } from './clientprice/clientprice.component';
 import { OrdertypeinComponent } from './ordertypein/ordertypein.component'
-
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
 @NgModule({
   declarations: [
@@ -63,6 +63,7 @@ import { OrdertypeinComponent } from './ordertypein/ordertypein.component'
     NzEmptyModule,
     NzSwitchModule,
     A11yModule,
+    NzModalModule,
   ]
 })
 export class SalesModule { }

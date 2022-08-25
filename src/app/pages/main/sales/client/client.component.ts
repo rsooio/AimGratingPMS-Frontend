@@ -36,7 +36,12 @@ export class ClientComponent implements OnInit {
         if (m['_deleted']) {
           this.clients.splice(this.clients.findIndex(v => v._id === m._id), 1);
         } else {
-          this.clients[this.clients.findIndex(v => v._id === m._id)] = m;
+          const index = this.clients.findIndex(v => v._id === m._id);
+          if (index != -1) {
+            this.clients[index] = m;
+          } else {
+            this.clients.unshift(m)
+          }
         }
         this.clients = this.clients.slice();
       })

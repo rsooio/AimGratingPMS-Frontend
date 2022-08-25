@@ -1,8 +1,8 @@
-import { UtilsService } from './../../../../services/utils/utils.service';
-import { ClientService } from './../../../../services/client/client.service';
-import { PinyinService } from './../../../../services/pinyin/pinyin.service';
-import { RandomService } from './../../../../services/random/random.service';
-import { DbService } from './../../../../services/db/db.service';
+import { UtilsService } from '@/services/utils/utils.service';
+import { ClientService } from '@/services/client/client.service';
+import { PinyinService } from '@/services/pinyin/pinyin.service';
+import { RandomService } from '@/services/random/random.service';
+import { DbService } from '@/services/db/db.service';
 import { DataService } from '@/services/data/data.service';
 import { OrderService } from '@/services/order/order.service';
 import { Component, OnInit } from '@angular/core';

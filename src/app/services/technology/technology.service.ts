@@ -11,6 +11,7 @@ import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
 export class TechnologyService {
   cache: { [x: string]: string } = {};
   options: { [x: string]: (NzSelectOptionInterface & { [x: string]: string })[] } = {};
+  init: Promise<void>;
 
   constructor(
     private db: DbService,
@@ -29,7 +30,7 @@ export class TechnologyService {
           this.createTree();
         }
       })
-    this.db.db.technology.Local?.find({
+    this.init = this.db.db.technology.Local!.find({
       selector: {
         workshop: this.dataService.info.workshop
       }
@@ -88,6 +89,11 @@ export class TechnologyService {
   private _technologies: { [x: string]: PouchDB.Core.ExistingDocument<{ [x: string]: any; }> } = {}
 
   get data() {
+    return this._technologies
+  }
+
+  async pdata() {
+    await this.init
     return this._technologies
   }
 }

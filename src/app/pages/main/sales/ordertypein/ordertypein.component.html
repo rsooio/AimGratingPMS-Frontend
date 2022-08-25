@@ -4,8 +4,12 @@
       <nz-page-header-title>订单录入</nz-page-header-title>
       <nz-page-header-extra>
         <nz-space>
-          <button nz-button *nzSpaceItem nzType="primary" (click)="createOrder()">新建订单</button>
-          <button nz-button *nzSpaceItem nzType="primary" nzDanger>删除订单</button>
+          <button nz-button *nzSpaceItem nzType="default"></button>
+          <button nz-button *nzSpaceItem nzType="default" (click)=" createOrder()">新建订单</button>
+          <button nz-button *nzSpaceItem nzType="primary" [disabled]="!indeterminate && !checked"
+            (click)="bulkTypein()">录入订单</button>
+          <button nz-button *nzSpaceItem nzType="primary" [disabled]="!indeterminate && !checked" (click)="bulkDelete()"
+            nzDanger>删除订单</button>
         </nz-space>
       </nz-page-header-extra>
       <nz-page-header-content>
@@ -28,6 +32,8 @@
       <!--document.body.offsetHeight-->
       <thead>
         <tr>
+          <th [nzDisabled]="orders.length === 0" [(nzChecked)]="checked" [nzIndeterminate]="indeterminate"
+            (nzCheckedChange)="onAllChecked($event)"></th>
           <th nzAlign="center" width="120px">订单号</th>
           <th nzAlign="center">客户</th>
           <th nzAlign="center">面积</th>
@@ -37,36 +43,41 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex">
+        <tr (dblclick)="edit(data)"
+          *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
+          <td [nzChecked]="data.checked" (nzCheckedChange)="onItemChecked(data, $event)"></td>
           <td nzAlign="center" style="font-family: monospace;">
             <div class="not-editable-cell">
-              {{data['_id'].toUpperCase()}}
+              {{data.value['_id'].toUpperCase()}}
             </div>
           </td>
           <td nzAlign="center">
-            <div class="not-editable-cell" [ngStyle]="{'color': data['client'] ? 'black' : 'lightgrey'}">
-              {{data['client'] ? data['client'] : '未选择用户'}}
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['client'] ? 'black' : 'lightgrey'}">
+              {{data.value['client'] ? clientService.cache[data.value['client']] : '未选择用户'}}
             </div>
           </td>
           <td nzAlign="center">
-            <div class="not-editable-cell" [ngStyle]="{'color': data['area'] ? 'black' : 'lightgrey'}">
-              {{data['area'] ? data['area'].toFixed(2) + ' ㎡' : '—'}}
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['area'] ? 'black' : 'lightgrey'}">
+              {{data.value['area'] ? data.value['area'].toFixed(2) + ' ㎡' : '—'}}
             </div>
           </td>
           <td nzAlign="center" *ngIf="dataService.info.role == 'boss'">
-            <div class="not-editable-cell" [ngStyle]="{'color': data['price'] ? 'black' : 'lightgrey'}">
-              {{data['price'] ? '¥ ' + data['price'] : '—'}}
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['price'] ? 'black' : 'lightgrey'}">
+              {{data.value['price'] ? '¥ ' + data.value['price'] : '—'}}
             </div>
           </td>
           <td nzAlign="center">
             <div class="not-editable-cell">
-              {{dataService.ORDER_STATE[data['state']]}}
+              {{dataService.ORDER_STATE[data.value['state']]}}
             </div>
           </td>
           <td nzAlign="center">
-            <a [routerLink]="data['_id']">编辑</a>
+            <a [routerLink]="data.value['_id']">编辑</a>
             <nz-divider nzType="vertical"></nz-divider>
-            <a (click)="delete(data['_id'])">删除</a>
+            <a *ngIf="data.value['state']===0" (click)="typein(data)">录入</a>
+            <a *ngIf="data.value['state']===1" (click)="typeout(data)">恢复</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <a (click)="delete(data)">删除</a>
           </td>
         </tr>
       </tbody>

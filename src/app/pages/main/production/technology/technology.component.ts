@@ -5,6 +5,11 @@ import { TechnologyService } from './../../../../services/technology/technology.
 import { DataService } from '@/services/data/data.service';
 import { Component, OnInit } from '@angular/core';
 
+type data = {
+  checked: boolean,
+  value: PouchDB.Core.ExistingDocument<{ [x: string]: any }>,
+}
+
 @Component({
   selector: 'app-technology',
   templateUrl: './technology.component.html',
@@ -12,6 +17,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class TechnologyComponent implements OnInit {
   createTechnologyButtonDisabled = false
+  loading = true;
+  technologies: data[] = [];
 
   patterns = [
     '和差', '比例'
@@ -19,7 +26,7 @@ export class TechnologyComponent implements OnInit {
 
   constructor(
     public data: DataService,
-    private technology: TechnologyService,
+    private technologyService: TechnologyService,
     public pinyin: PinyinService,
     private random: RandomService,
     private db: DbService,
@@ -27,16 +34,44 @@ export class TechnologyComponent implements OnInit {
 
   }
 
-  get dataList(): any[] {
-    return Object.keys(this.technology.data)
-      .sort((a, b) => this.dataItem(b)['create_time'] - this.dataItem(a)['create_time'])
-  }
+  // get dataList(): any[] {
+  //   return Object.keys(this.technology.data)
+  //     .sort((a, b) => this.dataItem(b)['create_time'] - this.dataItem(a)['create_time'])
+  // }
 
-  dataItem(key: string) {
-    return this.technology.data[key]
-  }
+  // dataItem(key: string) {
+  //   return this.technology.data[key]
+  // }
 
   ngOnInit(): void {
+    setTimeout(() => {
+      this.technologyService.pdata()
+        .then(m => {
+          Object.values(m)
+            .sort((a, b) => b['create_time'] - a['create_time'])
+            .forEach(order => this.technologies.push({
+              checked: false,
+              value: order,
+            }));
+          this.technologies = this.technologies.slice();
+          this.loading = false;
+        })
+      this.db.db.technology.Pipe
+        .subscribe(m => {
+          if (m['_deleted']) {
+            this.technologies.splice(this.technologies.findIndex(v => v.value._id === m._id), 1);
+          } else {
+            const index = this.technologies.findIndex(v => v.value._id === m._id)
+            if (index != -1) {
+              this.technologies[index].value = m;
+            } else {
+              this.technologies.unshift({ checked: false, value: m });
+            }
+          }
+          this.technologies = this.technologies.slice();
+          // this.refreshCheckedStatus();
+        })
+    }, 0);
   }
 
   createTechnology() {
@@ -69,13 +104,10 @@ export class TechnologyComponent implements OnInit {
     }
   }
 
-  delete(key: string) {
+  delete(data: data) {
+    data.value['_deleted'] = true;
     this.db.db.technology.Local
-      ?.put({
-        _id: key,
-        _rev: this.dataItem(key)._rev,
-        _deleted: true
-      })
+      ?.put(data.value)
   }
 
   patternSelect(data: { [x: string]: any }) {

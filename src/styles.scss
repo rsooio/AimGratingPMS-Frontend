@@ -1,4 +1,8 @@
 /* You can add global styles to this file, and also import other style files */
+body {
+  overflow: hidden !important
+}
+
 .routerContainer {
   position: relative;
 }
@@ -40,3 +44,6 @@ td {
   padding: 3px 11px;
 }
 
+.cdk-global-scrollblock {
+  overflow: hidden;
+}
