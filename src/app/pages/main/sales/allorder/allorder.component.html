@@ -1,36 +1,75 @@
 <nz-layout style="background-color: white;">
   <nz-header style="margin-bottom: 20px;" class="header">
-    <div>
-
-    </div>
-    <div>
-      <button nz-button nzType="primary" (click)="createOrder()">新建订单</button>
-      <button nz-button style="margin-left: 20px;" nzType="primary" nzDanger>删除订单</button>
-    </div>
+    <nz-page-header class="page-header">
+      <nz-page-header-title>全部订单</nz-page-header-title>
+      <nz-page-header-extra>
+        <nz-space>
+          <button nz-button *nzSpaceItem nzType="default"></button>
+          <button nz-button *nzSpaceItem nzType="default">新建订单</button>
+          <button nz-button *nzSpaceItem nzType="primary">录入订单</button>
+          <button nz-button *nzSpaceItem nzType="primary" nzDanger>删除订单</button>
+        </nz-space>
+      </nz-page-header-extra>
+      <nz-page-header-content>
+        <div style="display: flex;">
+          <nz-statistic nzTitle="活跃订单" [nzValue]="orders.length" nzSuffix="个"></nz-statistic>
+          <!-- <nz-statistic *ngIf="dataService.info.role === 'boss'" nzTitle="录入价格" style=" margin-right: 32px;"
+            [nzValue]="price.toFixed(2)" nzPrefix="¥">
+          </nz-statistic>
+          <nz-statistic *ngIf="dataService.info.role === 'boss'" nzTitle="平均价格" style=" margin-right: 32px;"
+            [nzValue]="orders.length ? (price / orders.length).toFixed(2) : '0.00'" nzPrefix="¥">
+          </nz-statistic> -->
+        </div>
+      </nz-page-header-content>
+    </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="dataList">
+    <nz-table #basicTable [nzData]="orders" [nzLoading]="loading" nzTableLayout="fixed">
       <thead>
         <tr>
-          <th width="120px">订单号</th>
-          <th>客户</th>
-          <th>面积</th>
-          <th *ngIf="role == 'boss'">价格</th>
-          <th>状态</th>
-          <th>操作</th>
+          <th nzAlign="center" nzEllipsis nzWidth="10%">订单号</th>
+          <th nzAlign="center" nzEllipsis nzWidth="15%">客户</th>
+          <th nzAlign="center" nzEllipsis nzWidth="10%">面积</th>
+          <th nzAlign="center" nzEllipsis nzWidth="10%" *ngIf="dataService.info.role == 'boss'">价格</th>
+          <th nzAlign="center" nzEllipsis nzWidth="10%">状态</th>
+          <th nzAlign="center" nzEllipsis nzWidth="25%">备注</th>
+          <th nzAlign="center" nzEllipsis nzWidth="20%">操作</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let data of basicTable.data">
-          <td>{{data['_id'].toUpperCase()}}</td>
-          <td>{{data['client']}}</td>
-          <td>{{data['area'] ? data['area'].toFixed(2) + ' ㎡' : '0'}}</td>
-          <td *ngIf="role == 'boss'">{{'¥ ' + data['price']}}</td>
-          <td>{{data['state']}}</td>
-          <td>
-            <a [routerLink]="data['_id']">编辑</a>
-            <nz-divider nzType="vertical"></nz-divider>
-            <a (click)="delete(data._id)">删除</a>
+          <td nzAlign="center" nzEllipsis>
+            <div class="not-editable-cell">
+              {{data.value['id_'] ? data.value['id_'].toUpperCase() : 'wtf?'}}
+            </div>
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['client'] ? 'black' : 'lightgray'}">
+              {{data.value['client'] ? clientService.cache[data.value['client']] : '—'}}
+            </div>
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['area'] ? 'black' : 'lightgray'}">
+              {{data.value['area'] ? data.value['area'] + ' ㎡' : '—'}}
+            </div>
+          </td>
+          <td nzAlign="center" nzEllipsis *ngIf="dataService.info.role == 'boss'">
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['price'] ? 'black' : 'lightgray'}">
+              {{data.value['price'] ? '¥ ' + data.value['price'] : '—'}}
+            </div>
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <div class="not-editable-cell">
+              {{dataService.ORDER_STATE[data.value['state']]}}
+            </div>
+          </td>
+          <td [nzAlign]="data.value['remark'] ? 'left' : 'center'" nzEllipsis>
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['remark'] ? 'black' : 'lightgray'}">
+              {{data.value['remark'] ? data.value['remark'] : '—'}}
+            </div>
+          </td>
+          <td nzAlign="center" nzEllipsis>
+            <a [routerLink]="data.value.id_">编辑</a>
           </td>
         </tr>
       </tbody>

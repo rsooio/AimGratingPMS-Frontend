@@ -79,6 +79,13 @@ import { environment } from '../environments/environment';
 // import { SharedModule } from './shared/shared.module';
 // import { STWidgetModule } from './shared/st-widget/st-widget.module';
 
+import { registerLocaleData } from '@angular/common';
+import zh from '@angular/common/locales/zh';
+registerLocaleData(zh);
+
+import { NZ_I18N, zh_CN } from 'ng-zorro-antd/i18n';
+
+
 @NgModule({
   declarations: [
     AppComponent
@@ -109,6 +116,7 @@ import { environment } from '../environments/environment';
     // ...LANG_PROVIDES,
     // ...INTERCEPTOR_PROVIDES,
     // ...APPINIT_PROVIDES
+    { provide: NZ_I18N, useValue: zh_CN }
   ],
   bootstrap: [AppComponent]
 })

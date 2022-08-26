@@ -9,7 +9,7 @@
     </div>
     <nz-input-group nzSize="large" [nzPrefix]="golbalIcon" [nzSuffix]="enterpriseClearTpl" [nzStatus]="status">
       <input [disabled]="disabled" (input)="onInput()" (keyup.enter)="selectEnterprise()" nz-input type="text"
-        [(ngModel)]="enterprise" placeholder="企业名称" style="text-transform:uppercase" />
+        [(ngModel)]="enterprise" placeholder="企业名称" />
     </nz-input-group>
     <div style="height: 10px;">
       <p *ngIf="status" style="color: red">{{errorMessage}}</p>

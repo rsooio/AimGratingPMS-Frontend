@@ -88,7 +88,7 @@
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="products" nzTableLayout="fixed" [nzLoading]="loading"
+    <nz-table #basicTable [nzData]="products" nzTableLayout="fixed" [nzLoading]="!order"
       [nzPageSize]="dataService.getPageSize(430, 44)">
       <thead>
         <tr>

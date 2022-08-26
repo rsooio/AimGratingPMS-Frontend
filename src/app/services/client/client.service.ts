@@ -1,5 +1,6 @@
+import { filter, Subject } from 'rxjs';
 import { PinyinService } from './../pinyin/pinyin.service';
-import { DbService } from '@/services/db/db.service';
+import { DbService, Doc, GetDoc } from '@/services/db/db.service';
 import { TechnologyService } from '@/services/technology/technology.service';
 import { Injectable } from '@angular/core';
 import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
@@ -8,84 +9,101 @@ import { NzSelectOptionInterface } from 'ng-zorro-antd/select';
   providedIn: 'root'
 })
 export class ClientService {
+  type = 'client';
+  Stream: Subject<GetDoc> = new Subject<GetDoc>();
   options: (NzSelectOptionInterface & { [x: string]: string })[] = [];
   cache: { [x: string]: string } = {};
-  init: Promise<void>;
+  private _docs: { [x: string]: GetDoc } = {}
 
   constructor(
-    private db: DbService,
+    private dbService: DbService,
     private technologies: TechnologyService,
     private pinyin: PinyinService
   ) {
     (window as any)['client'] = this;
-    this.db.db.client.Pipe
-      ?.subscribe({
+    this.dbService.Stream
+      .pipe(filter(m => m.type_ === this.type))
+      .subscribe({
         next: m => {
-          if (m['_deleted']) {
-            delete this._clients[m._id]
-          } else {
-            this._clients[m._id] = m
-          }
-          this.transfer()
-        }
+          this.add(m);
+          this.transfer();
+        },
+        error: e => this.Stream.error(e),
+        complete: () => this.Stream.complete(),
       })
-    this.init = this.db.db.client.Local!.find({
-      selector: {
-        workshop: 'a'
-      }
-    }).then(m => {
-      for (const i of m.docs) {
-        if (i['_deleted']) {
-          console.log('deleted true')
-        } else {
-          this._clients[i._id] = i
-        }
-        this.transfer()
-      }
-    })
+    this.dbService.find(this.type)
+      .subscribe({
+        next: m => this.add(m),
+        error: e => this.Stream.error(e),
+        complete: () => this.transfer(),
+      })
+  }
+
+  async add(data: GetDoc) {
+    this.Stream.next(data);
+    if (data['_deleted']) {
+      delete this._docs[data._id]
+    } else {
+      this._docs[data._id] = data
+    }
   }
 
   transfer() {
     this.options = [];
-    Object.keys(this._clients)
-      .filter(k => this._clients[k]['name'])
-      .forEach(k => {
+    Object.values(this._docs)
+      .filter(v => v['name'])
+      .forEach(v => {
         this.options.push({
-          label: this._clients[k]['name'],
-          value: k,
-          pinyin: this.pinyin.firstLetter(this._clients[k]['name'])
+          label: v['name'],
+          value: v.id_!,
+          pinyin: this.pinyin.firstLetter(v['name'])
         })
-        this.cache[k] = this._clients[k]['name'];
+        this.cache[v.id_!] = v['name'];
       })
   }
 
-  private _clients: { [x: string]: PouchDB.Core.ExistingDocument<{ [x: string]: any; }> } = {}
-
-  get data() {
-    return this._clients
+  async put(data: Doc, options?: PouchDB.Core.PutOptions) {
+    return this.dbService.put(this.type, data, options);
   }
 
-  async pdata() {
-    await this.init;
-    return this._clients;
+  async get(docId: string, options?: PouchDB.Core.GetOptions) {
+    return this.dbService.get(this.type, docId, options);
   }
 
-  unit_price(clientKey: string, technologyKey: string, textureKey?: string, colorKey?: string) {
-    if (!this._clients[clientKey] || !this._clients[clientKey]['unit_price']) return 0;
-    const prices = this._clients[clientKey]['unit_price']
+  item(id: string) {
+    return this._docs[this.type + '/' + id]
+  }
+
+  data() {
+    return Object.values(this._docs);
+  }
+
+  unit_price(clientKey: string, technologyKey: string, textureKey?: string, colorKey?: string, type?: string) {
+    const client = this.item(clientKey);
+    if (!client || !client['unit_price']) return 0;
+    const prices = client['unit_price']
     if (textureKey) {
-      if (colorKey && prices[technologyKey + textureKey + colorKey]) {
+      if (type && prices[technologyKey + textureKey + colorKey + '-' + type]) {
         return prices[technologyKey + textureKey + colorKey];
       }
-      if (prices[technologyKey + textureKey]) {
+      if (colorKey && prices[technologyKey + textureKey + colorKey + '-默认']) {
+        return prices[technologyKey + textureKey + colorKey + '-默认'];
+      }
+      if (type && prices[technologyKey + textureKey + '-' + type]) {
+        return prices[technologyKey + textureKey + '-默认'];
+      }
+      if (prices[technologyKey + textureKey + '-默认']) {
         return prices[technologyKey + textureKey];
       }
     }
-    if (prices[technologyKey]) {
+    if (type && prices[technologyKey + '-' + type]) {
       return prices[technologyKey];
     }
+    if (prices[technologyKey + '-默认']) {
+      return prices[technologyKey + '-默认'];
+    }
     if (!prices['default']) return 0;
-    const technology = this.technologies.data[technologyKey]
+    const technology = this.technologies.doc(technologyKey)
     if (textureKey) {
       const texture = technology['textures'][textureKey]
       if (colorKey) {

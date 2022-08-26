@@ -6,13 +6,14 @@
           <a routerLink="..">客户管理</a>
         </nz-breadcrumb-item>
         <nz-breadcrumb-item>
-          <a routerLink=".">{{client['name'] ? client['name'] : '未命名'}}</a>
+          <a routerLink=".">{{client && client['name'] ? client['name'] : '未命名'}}</a>
         </nz-breadcrumb-item>
       </nz-breadcrumb>
       <nz-page-header-title>售价管理</nz-page-header-title>
       <nz-page-header-content>
         <div style="display: flex;">
-          <nz-statistic nzTitle="数量" [nzValue]="technologyList.length" nzSuffix="种"></nz-statistic>
+          <nz-statistic nzTitle="数量" [nzValue]="(technologyService.options['technology'] || '').length" nzSuffix="种">
+          </nz-statistic>
           <div>
           </div>
         </div>
@@ -20,7 +21,8 @@
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="technologyService.options['technology']" nzTableLayout="fixed">
+    <nz-table #basicTable [nzData]="technologyService.options['technology']" nzTableLayout="fixed"
+      [nzLoading]="!client">
       <thead>
         <tr>
           <!-- <th nzWidth="30px"></th> -->

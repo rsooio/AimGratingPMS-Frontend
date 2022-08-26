@@ -3,14 +3,14 @@ import { ClientService } from '@/services/client/client.service';
 import { NzModalService } from 'ng-zorro-antd/modal';
 import { UtilsService } from './../../../../services/utils/utils.service';
 import { DataService } from '@/services/data/data.service';
-import { DbService } from '@/services/db/db.service';
+import { DbService, Doc, GetDoc } from '@/services/db/db.service';
 import { OrderService } from '@/services/order/order.service';
 import { RandomService } from '@/services/random/random.service';
 import { Component, OnInit } from '@angular/core';
 import { ceil } from '@delon/util';
 import { filter, timer } from 'rxjs';
 
-type data = { value: { [x: string]: any }, checked: boolean };
+type data = { value: GetDoc, checked: boolean };
 
 @Component({
   selector: 'app-ordertypein',
@@ -40,7 +40,7 @@ export class OrdertypeinComponent implements OnInit {
   }
 
   edit(data: data) {
-    // this.router.navigate([data.value['_id']], { relativeTo: this.route })
+    // this.router.navigate([data.value.id], { relativeTo: this.route })
   }
 
   constructor(
@@ -59,48 +59,52 @@ export class OrdertypeinComponent implements OnInit {
 
   ngOnInit(): void {
     setTimeout(() => {
-      this.orderService.pdata()
-        .then(m => {
-          Object.values(m)
-            .filter(this.filter)
-            .sort((a, b) => b['create_time'] - a['create_time'])
-            .forEach(order => {
-              this.orders.push({
-                checked: false,
-                value: order,
-              })
-            });
-          this.orders = this.orders.slice();
-          this.loading = false;
-        })
-      this.db.db.order.Pipe
-        .pipe(filter(m => m['_deleted'] || this.filter(m)))
+      this.orderService.Stream
+        .pipe(filter(m => m._deleted || this.filter(m)))
         .subscribe(m => {
-          if (m['_deleted']) {
-            this.orders.splice(this.orders.findIndex(v => v.value['_id'] === m['_id']), 1);
+          if (m._deleted) {
+            this.orders.splice(this.orders.findIndex(v => v.value._id == m._id), 1);
           } else {
-            const index = this.orders.findIndex(order => order.value['_id'] === m['_id'])
+            const index = this.orders.findIndex(order => order.value._id == m._id)
             if (index != -1) {
               this.orders[index].value = m;
             } else {
               this.orders.unshift({ checked: false, value: m });
+              this.orders = this.orders.sort((a, b) => b.value['create_time'] - a.value['create_time']);
             }
           }
           this.orders = this.orders.slice();
           this.refreshCheckedStatus();
         })
+      this.orderService.docs()
+        .filter(this.filter)
+        .sort((a, b) => b['create_time'] - a['create_time'])
+        .forEach(order => {
+          this.orders.push({
+            checked: false,
+            value: order,
+          })
+        });
+      this.orders = this.orders.slice();
+      this.loading = false;
     }, 0);
     timer(new Date(new Date(new Date().toLocaleDateString()).getTime() + 104400000), 86400000)
-      .subscribe(() => this.orders = this.orders.filter(this.filter))
+      .subscribe(() => this.orders = this.orders.filter(m => this.filter(m.value)))
   }
 
-  filter(v: { [x: string]: any }) {
+  filter(v: GetDoc) {
     if (v['state'] === 0) {
       return true;
     }
     if (v['state'] === 1 && v['typein_time']) {
       const dateStamp = new Date(new Date().toLocaleDateString()).getTime() + 18000000;
       return v['typein_time'] >= dateStamp;
+    }
+    if (v['state'] === 2) {
+      const index = this.orders.findIndex(m => m.value._id === v._id);
+      if (index != -1) {
+        this.orders.splice(index, 1);
+      }
     }
     return false;
   }
@@ -114,9 +118,8 @@ export class OrdertypeinComponent implements OnInit {
   }
 
   delete(data: data) {
-    data.value['_deleted'] = true
-    this.db.db.order.Local
-      ?.put(data.value)
+    data.value._deleted = true
+    this.orderService.put(data.value)
   }
 
   bulkDelete() {
@@ -136,8 +139,7 @@ export class OrdertypeinComponent implements OnInit {
   typein(data: data) {
     data.value['state'] = 1;
     data.value['typein_time'] = new Date().getTime();
-    this.db.db.order.Local
-      ?.put(data.value)
+    this.orderService.put(data.value)
   }
 
   typeout(data: data) {
@@ -145,8 +147,7 @@ export class OrdertypeinComponent implements OnInit {
     if (data.value['typein_time']) {
       delete data.value['typein_time'];
     }
-    this.db.db.order.Local
-      ?.put(data.value)
+    this.orderService.put(data.value)
   }
 
   bulkTypein() {
@@ -167,17 +168,14 @@ export class OrdertypeinComponent implements OnInit {
   createOrder() {
     this.random.string(5)
       .then(id => {
-        this.db.db.order.Local
-          ?.get(id)
+        this.orderService
+          .get(id)
           .then(() => this.createOrder())
           .catch(() => {
-            this.db.db.order.Local
-              ?.put({
-                _id: id,
-                workshop: this.dataService.info.workshop,
+            this.orderService
+              .put({
+                id_: id,
                 create_time: new Date().getTime(),
-                area: 0,
-                price: 0,
                 state: 0,
                 product_set: {}
               })

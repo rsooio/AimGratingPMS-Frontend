@@ -18,14 +18,18 @@ export class StafferComponent implements OnInit {
     private router: Router,
     public db: DbService,
     private staffer: StafferService,
-    private data: DataService
+    public dataService: DataService
   ) { }
 
   ngOnInit(): void {
-    this.enterprise = sessionStorage.getItem('enterprise')
   }
 
-  enterprise: string | null = null;
+  ngAfterContentInit(): void {
+    //Called after ngOnInit when the component's or directive's content has been initialized.
+    //Add 'implements AfterContentInit' to the class.
+    console.log('test')
+  }
+
   username: string | null = null;
   password: string | null = null;
   status: NzStatus = "";
@@ -35,19 +39,23 @@ export class StafferComponent implements OnInit {
   errorMessage = ''
 
   async login() {
-    if (!this.username || !this.password || !this.enterprise) return
+    if (!this.username || !this.password) return
     this.disable = true
 
-    await this.db.db.enterprise.Remote
-      ?.logIn(this.username, this.password)
+    await this.db.enterprise.Remote
+      ?.logIn(this.dataService.info.enterprise + '-' + this.username, this.password)
       .catch(e => console.log(e))
       .then(async m => {
-        await new PouchDB<{ [key in string]: any }>(this.enterprise + '-staffer')
-          .get(this.username as string)
+        if (!m) {
+          this.failed();
+          return;
+        }
+        await new PouchDB<{ [key in string]: any }>(this.dataService.info.enterpriseCode!)
+          .get('staffer/' + this.username!)
           .then(m => this.success(m))
           .catch(async e => {
-            await new PouchDB<{ [key in string]: any }>(SYNC_ENDPOINT + this.enterprise + '-staffer')
-              .get(this.username as string)
+            await new PouchDB<{ [key in string]: any }>(SYNC_ENDPOINT + this.dataService.info.enterpriseCode!)
+              .get('staffer/' + this.username!)
               .catch(e => console.log(e))
               .then(m => {
                 if (m) this.success(m)
@@ -59,11 +67,11 @@ export class StafferComponent implements OnInit {
   }
 
   async success(m: { [x: string]: any; } & PouchDB.Core.IdMeta & PouchDB.Core.GetMeta) {
-    if (m['workshop'] && m['role'] && this.enterprise) {
+    if (m['workshop'] && m['role']) {
       sessionStorage.setItem('workshop', m['workshop'])
       sessionStorage.setItem('role', m['role'])
-      this.data.refreshInfo();
-      this.db.connect(this.enterprise, m['workshop'], m['role'])
+      this.dataService.refreshInfo();
+      this.db.connect(this.dataService.info.enterpriseCode!, m['workshop'], m['role'])
       this.router.navigate(['/main/dashboard'])
     }
   }

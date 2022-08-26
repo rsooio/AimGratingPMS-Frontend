@@ -1,3 +1,4 @@
+import { Doc } from '@/services/db/db.service';
 import { UtilsService } from './../../../../services/utils/utils.service';
 import { ClientService } from './../../../../services/client/client.service';
 import { DataService } from '@/services/data/data.service';
@@ -22,11 +23,11 @@ export class ProducteditorComponent implements OnInit {
   id: any;
   setid: any;
   createProductButtonDisabled = false;
-  order: { [x: string]: any } = {};
+  order?: Doc;
   productSet: { [x: string]: any } = {};
   products: { [x: string]: any }[] = [];
-  loading = true;
   document = document
+  productSets: { [x: string]: any } = {};
 
 
   constructor(
@@ -41,11 +42,12 @@ export class ProducteditorComponent implements OnInit {
     public utilsService: UtilsService,
   ) { }
 
-  fetchData(order: { [x: string]: any }) {
+  fetchData(order: Doc) {
     if (!order) return;
     this.order = order
     const productSets = order['product_set'];
     if (!productSets) return;
+    this.productSets = productSets;
     const productSet = productSets[this.setid];
     if (!productSet) return;
     this.productSet = productSet;
@@ -58,27 +60,27 @@ export class ProducteditorComponent implements OnInit {
   //   return Object.keys(this.technologies.tree);
   // }
 
-  // get order(): { [x: string]: any } {
+  // get order(): Doc {
   //   return this.orderService.data[this.id] ? this.orderService.data[this.id] : {}
   // }
 
-  // get productSet(): { [x: string]: any } {
+  // get productSet(): Doc {
   //   if (this.order['product_set']) {
   //     return this.order['product_set'][this.setid] ? this.order['product_set'][this.setid] : {}
   //   }
   //   return {}
   // }
 
-  // get products(): { [x: string]: any }[] {
+  // get products(): Doc[] {
   //   return this.productSet['products'] ? this.productSet['products'] : []
   // }
 
-  // textureList(data: { [x: string]: any }) {
+  // textureList(data: Doc) {
   //   if (!this.technologies.cache[data['technology']]) return [];
   //   return Object.keys(this.technologies.tree[data['technology']])
   // }
 
-  // colorList(data: { [x: string]: any }) {
+  // colorList(data: Doc) {
   //   if (!this.technologies.cache[data['technology'] + data['texture']]) return [];
   //   return this.technologies.tree[data['technology']][data['texture']];
   // }
@@ -91,12 +93,10 @@ export class ProducteditorComponent implements OnInit {
       }
     });
     setTimeout(() => {
-      this.loading = false;
-      this.orderService.pdata()
-        .then(m => this.fetchData(m[this.id]))
-      this.db.db.order.Pipe
-        ?.pipe(filter(m => m._id == this.id))
+      this.orderService.Stream
+        .pipe(filter(m => m.id_ == this.id))
         .subscribe(m => this.fetchData(m))
+      this.fetchData(this.orderService.doc(this.id))
     }, 0);
   }
 
@@ -109,19 +109,28 @@ export class ProducteditorComponent implements OnInit {
 
   createProduct() {
     let insert: { [x: string]: any } = {};
+    const sets = Object.values(this.productSets).sort((a, b) => b['create_time'] - a['create_time'])
+    let last: { [x: string]: any } = {};
     if (this.products.length) {
-      const last = this.products.slice(-1)[0];
-      if (last['technology']) insert['technology'] = last['technology'];
-      if (last['texture']) insert['texture'] = last['texture'];
-      if (last['color']) insert['color'] = last['color'];
-      if (last['type'] === '出风口') insert['type'] = '回风口';
-      else if (last['type'] === '回风口') insert['type'] = '出风口';
-      else if (last['type']) insert['type'] = last['type'];
-      if (last['unit_price']) insert['unit_price'] = last['unit_price'];
+      last = this.products.slice(-1)[0];
+    } else if (sets.length) {
+      for (const set of sets) {
+        if (set['products'] && set['products'].length) {
+          last = set['products'].slice(-1)[0];
+          break;
+        }
+      }
     }
+    if (last['technology']) insert['technology'] = last['technology'];
+    if (last['texture']) insert['texture'] = last['texture'];
+    if (last['color']) insert['color'] = last['color'];
+    if (last['type'] === '出风口') insert['type'] = '回风口';
+    else if (last['type'] === '回风口') insert['type'] = '出风口';
+    else if (last['type']) insert['type'] = last['type'];
+    if (last['unit_price']) insert['unit_price'] = last['unit_price'];
     this.products.push(insert);
-    this.db.db.order.Local
-      ?.put(this.order)
+    this.orderService
+      .put(this.order!)
     // .catch(() => {
     //   this.productSet.pop();
     //   this.createProduct();
@@ -132,17 +141,11 @@ export class ProducteditorComponent implements OnInit {
     if (data['edit']) {
       delete data['edit']
     }
-    data['unit_price'] = this.clientService.unit_price(this.order['client'], data['technology'], data['texture'], data['color'])
-    // data['price'] = MathService.round(data['area'] * data['unit_price'], 2);
+    data['unit_price'] = this.clientService.unit_price(this.order!['client'], data['technology'], data['texture'], data['color'], data['type'])
     this.orderService.calcProduct(data, true, false)
-    this.orderService.calcProductSet(this.order['product_set'][this.setid], true, false)
-    this.orderService.calcOrder(this.order, true, false)
-    // this.order['product_set'][this.setid]['price'] = MathService.round(this.products
-    //   .reduce((prev, curr) => curr['price'] ? prev + curr['price'] : prev, 0), 2);
-    // this.order['price'] = MathService.round(Object.values<{ [x: string]: any }>(this.order['product_set'])
-    //   .reduce((prev, curr) => curr['price'] ? prev + curr['price'] : prev, 0), 2);
-    this.db.db.order.Local
-      ?.put(this.order);
+    this.orderService.calcProductSet(this.order!['product_set'][this.setid], true, false)
+    this.orderService.calcOrder(this.order!, true, false)
+    this.orderService.put(this.order!);
   }
 
   selectClear(data: { [x: string]: any }, keys: string[]) {
@@ -168,11 +171,10 @@ export class ProducteditorComponent implements OnInit {
       if (data['length'] && data['width']) {
         const isCalcPrice = data['unit_price'] && update
         this.orderService.calcProduct(data, isCalcPrice);
-        this.orderService.calcProductSet(this.order['product_set'][this.setid], isCalcPrice);
-        this.orderService.calcOrder(this.order, isCalcPrice);
+        this.orderService.calcProductSet(this.order!['product_set'][this.setid], isCalcPrice);
+        this.orderService.calcOrder(this.order!, isCalcPrice);
       }
-      this.db.db.order.Local
-        ?.put(this.order);
+      this.orderService.put(this.order!);
     }
   }
 
@@ -180,10 +182,10 @@ export class ProducteditorComponent implements OnInit {
     const index = this.products.indexOf(data);
     if (index != -1) {
       this.products.splice(index, 1);
-      this.db.db.order.Local
-        ?.put(this.order);
+      this.orderService.calcProduct(data, true);
+      this.orderService.calcProductSet(this.order!['product_set'][this.setid], true);
+      this.orderService.calcOrder(this.order!, true);
+      this.orderService.put(this.order!);
     }
   }
-
-
 }

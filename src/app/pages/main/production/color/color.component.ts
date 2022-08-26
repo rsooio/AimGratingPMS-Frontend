@@ -1,10 +1,17 @@
 import { DataService } from '@/services/data/data.service';
-import { DbService } from '@/services/db/db.service';
+import { DbService, Doc, GetDoc } from '@/services/db/db.service';
 import { PinyinService } from '@/services/pinyin/pinyin.service';
 import { RandomService } from '@/services/random/random.service';
 import { TechnologyService } from '@/services/technology/technology.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { filter } from 'rxjs';
+
+interface data {
+  value: { [x: string]: any }
+  checked: boolean
+  key: string
+}
 
 @Component({
   selector: 'app-color',
@@ -15,6 +22,9 @@ export class ColorComponent implements OnInit {
   id: any;
   textureId: any;
   createColorButtonDisabled = false;
+  technology?: GetDoc;
+  texture: { [x: string]: any } = {};
+  colors: data[] = [];
 
   patterns = [
     '和差', '比例'
@@ -23,61 +33,81 @@ export class ColorComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    public data: DataService,
-    private technologies: TechnologyService,
-    public pinyin: PinyinService,
-    private random: RandomService,
-    private db: DbService,
-  ) {
+    public dataService: DataService,
+    private technologyService: TechnologyService,
+    public pinyinService: PinyinService,
+    private randomService: RandomService,
+  ) { }
+
+  ngOnInit(): void {
     this.route.params.subscribe({
       next: m => {
         this.id = m['id']
         this.textureId = m['texture']
       }
     })
+    setTimeout(() => {
+      this.technologyService.Stream
+        .pipe(filter(m => m.id_ == this.id))
+        .subscribe(m => this.fetchData(m))
+      this.fetchData(this.technologyService.doc(this.id))
+    }, 0);
   }
 
-  get technology(): { [x: string]: any } {
-    if (this.technologies.data[this.id]) {
-      return this.technologies.data[this.id]
-    }
-    return {}
+  fetchData(technology: GetDoc) {
+    if (!technology) return
+    this.technology = technology
+    this.texture = this.technology['textures'][this.textureId]
+    this.colors = [];
+    Object.keys(this.texture['colors'])
+      .forEach(k => {
+        this.colors.unshift({
+          checked: false,
+          value: this.texture['colors'][k],
+          key: k
+        })
+      })
+    this.colors = this.colors.slice()
   }
 
-  get texture(): { [x: string]: any } {
-    if (this.technology['textures'] && this.technology['textures'][this.textureId]) {
-      return this.technology['textures'][this.textureId]
-    }
-    return {}
-  }
+  // get technology(): { [x: string]: any } {
+  //   if (this.technologies.data[this.id]) {
+  //     return this.technologies.data[this.id]
+  //   }
+  //   return {}
+  // }
 
-  get dataList(): string[] {
-    if (this.texture['colors']) {
-      return Object.keys(this.texture['colors'])
-    }
-    return []
-  }
+  // get texture(): { [x: string]: any } {
+  //   if (this.technology['textures'] && this.technology['textures'][this.textureId]) {
+  //     return this.technology['textures'][this.textureId]
+  //   }
+  //   return {}
+  // }
 
-  dataItem(key: string): { [x: string]: any } {
-    return this.texture['colors'][key]
-  }
+  // get dataList(): string[] {
+  //   if (this.texture['colors']) {
+  //     return Object.keys(this.texture['colors'])
+  //   }
+  //   return []
+  // }
 
-  ngOnInit(): void {
-  }
+  // dataItem(key: string): { [x: string]: any } {
+  //   return this.texture['colors'][key]
+  // }
 
   onBack() {
     this.router.navigate(['/main/production/technologies', this.id])
   }
 
   createColor() {
-    this.random.string(4)
+    this.randomService.string(4)
       .then(id => {
-        if (this.dataItem(id)) {
+        if (this.texture['colors'][id]) {
           this.createColor();
         } else {
           this.texture['colors'][id] = {};
-          this.db.db.technology.Local
-            ?.put(this.technology)
+          this.technologyService
+            .put(this.technology!)
             .catch(() => {
               delete this.texture['colors'][id];
               this.createColor();
@@ -92,16 +122,16 @@ export class ColorComponent implements OnInit {
     }
     if (data['change']) {
       delete data['change'];
-      this.db.db.technology.Local
-        ?.put(this.technology);
+      this.technologyService
+        .put(this.technology!);
     }
   }
 
   delete(key: string) {
-    if (this.dataItem(key)) {
+    if (this.texture['colors'][key]) {
       delete this.texture['colors'][key]
-      this.db.db.technology.Local
-        ?.put(this.technology);
+      this.technologyService
+        .put(this.technology!);
     }
   }
 
@@ -109,8 +139,8 @@ export class ColorComponent implements OnInit {
     if (data['edit']) {
       delete data['edit']
     }
-    this.db.db.technology.Local
-      ?.put(this.technology);
+    this.technologyService
+      .put(this.technology!);
   }
 
   clearFocus(data: { [x: string]: any }) {

@@ -35,10 +35,12 @@
           <th [nzDisabled]="orders.length === 0" [(nzChecked)]="checked" [nzIndeterminate]="indeterminate"
             (nzCheckedChange)="onAllChecked($event)"></th>
           <th nzAlign="center" width="120px">订单号</th>
+          <th nzAlign="center">时间</th>
           <th nzAlign="center">客户</th>
           <th nzAlign="center">面积</th>
           <th nzAlign="center" *ngIf="dataService.info.role == 'boss'">价格</th>
           <th nzAlign="center">状态</th>
+          <th nzAlign="center">备注</th>
           <th nzAlign="center">操作</th>
         </tr>
       </thead>
@@ -48,12 +50,17 @@
           <td [nzChecked]="data.checked" (nzCheckedChange)="onItemChecked(data, $event)"></td>
           <td nzAlign="center" style="font-family: monospace;">
             <div class="not-editable-cell">
-              {{data.value['_id'].toUpperCase()}}
+              {{data.value.id_.toUpperCase()}}
+            </div>
+          </td>
+          <td nzAlign="center">
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['date'] ? 'black' : 'lightgrey'}">
+              {{data.value['date'] ? data.value['date'].substring(0, 10) : '—'}}
             </div>
           </td>
           <td nzAlign="center">
             <div class="not-editable-cell" [ngStyle]="{'color': data.value['client'] ? 'black' : 'lightgrey'}">
-              {{data.value['client'] ? clientService.cache[data.value['client']] : '未选择用户'}}
+              {{data.value['client'] ? clientService.cache[data.value['client']] : '未选择客户'}}
             </div>
           </td>
           <td nzAlign="center">
@@ -71,8 +78,13 @@
               {{dataService.ORDER_STATE[data.value['state']]}}
             </div>
           </td>
+          <td [nzAlign]="data.value['remark'] ? 'left' : 'center'">
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['remark'] ? 'black' : 'lightgrey'}">
+              {{data.value['remark'] ? data.value['remark'] : '—'}}
+            </div>
+          </td>
           <td nzAlign="center">
-            <a [routerLink]="data.value['_id']">编辑</a>
+            <a [routerLink]="data.value.id_">编辑</a>
             <nz-divider nzType="vertical"></nz-divider>
             <a *ngIf="data.value['state']===0" (click)="typein(data)">录入</a>
             <a *ngIf="data.value['state']===1" (click)="typeout(data)">恢复</a>

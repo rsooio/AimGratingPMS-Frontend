@@ -1,5 +1,7 @@
-import { Observable } from 'rxjs';
-import { DbService } from './../db/db.service';
+import { GetDoc } from '@/services/db/db.service';
+import { DataService } from '@/services/data/data.service';
+import { Observable, filter, Subject, Observer } from 'rxjs';
+import { DbService, Doc } from './../db/db.service';
 import { Injectable } from '@angular/core';
 import { MathService } from '@/services/math/math.service';
 
@@ -7,46 +9,54 @@ import { MathService } from '@/services/math/math.service';
   providedIn: 'root'
 })
 export class OrderService {
-  init: Promise<void>;
+  type = 'order';
+  Stream: Subject<GetDoc> = new Subject<GetDoc>();
+  private _docs: { [x: string]: GetDoc } = {}
 
   constructor(
-    private db: DbService,
+    private dbService: DbService,
+    private dataService: DataService,
   ) {
     (window as any)['order'] = this;
-    this.db.db.order.Pipe
-      ?.subscribe({
-        next: m => {
-          if (m['_deleted']) {
-            delete this._orders[m._id]
-          } else {
-            this._orders[m._id] = m
-          }
+    this.dbService.Stream
+      .pipe(filter(m => m.type_ === this.type))
+      .subscribe({
+        next: m => this.add(m),
+        error: e => this.Stream.error(e),
+        complete: () => {
+          this.Stream.complete()
         }
       })
-    this.init = this.db.db.order.Local!.find({
-      selector: {
-        workshop: 'a'
-      }
-    }).then(m => {
-      for (const i of m.docs) {
-        if (i['_deleted']) {
-          console.log('deleted true')
-        } else {
-          this._orders[i._id] = i
-        }
-      }
-    })
+    this.dbService.find(this.type)
+      .subscribe({
+        next: m => this.add(m),
+        error: e => this.Stream.error(e),
+      })
   }
 
-  private _orders: { [x: string]: PouchDB.Core.ExistingDocument<{ [x: string]: any; }> } = {}
-
-  get data() {
-    return this._orders
+  async add(data: GetDoc) {
+    this.Stream.next(data);
+    if (data['_deleted']) {
+      delete this._docs[data._id!]
+    } else {
+      this._docs[data._id] = data
+    }
   }
 
-  async pdata() {
-    await this.init;
-    return this._orders;
+  async put(data: Doc, options?: PouchDB.Core.PutOptions) {
+    return this.dbService.put(this.type, data, options);
+  }
+
+  async get(docId: string, options?: PouchDB.Core.GetOptions) {
+    return this.dbService.get(this.type, docId, options);
+  }
+
+  doc(id: string) {
+    return this._docs[this.type + '/' + id]
+  }
+
+  docs() {
+    return Object.values(this._docs);
   }
 
   calcProduct(data: { [x: string]: any }, price?: boolean, area = true) {

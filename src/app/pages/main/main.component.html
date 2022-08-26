@@ -3,7 +3,8 @@
     [nzTrigger]="null">
     <div class="sidebar-logo">
       <i *ngIf="isCollapsed" nz-icon nzType="appstore" style="font-size: 250%; color: cyan" nzTheme="outline"></i>
-      <h1 *ngIf="!isCollapsed" style="font-size: 150%; white-space:nowrap; user-select: none; color: cyan;">
+      <h1 routerLink="/" *ngIf="!isCollapsed"
+        style="font-size: 150%; white-space:nowrap; user-select: none; color: cyan;">
         风口生产销售管理系统
       </h1>
     </div>
@@ -28,7 +29,7 @@
         <span title><i class="submenu-logo" nz-icon nzType="carry-out"></i><span class="submenu-title">生产</span></span>
         <ul>
           <li nz-menu-item nzMatchRouter>
-            <a>生产管理</a>
+            <a routerLink="production/schedule">生产管理</a>
           </li>
           <li nz-menu-item nzMatchRouter>
             <a routerLink="production/technologies">工艺管理</a>

@@ -1,1 +1,73 @@
-<p>schedule works!</p>
+<nz-layout style="background-color: white;">
+  <nz-header style="margin-bottom: 20px;" class="header">
+    <nz-page-header class="page-header">
+      <nz-page-header-title>生产计划</nz-page-header-title>
+      <nz-page-header-extra>
+        <nz-space>
+          <button nz-button *nzSpaceItem nzType="primary">新建计划</button>
+          <button nz-button *nzSpaceItem nzType="primary" nzDanger>删除计划</button>
+        </nz-space>
+      </nz-page-header-extra>
+      <nz-page-header-content>
+        <div style="display: flex;">
+          <nz-statistic nzTitle="未开始" [nzValue]="schedulesWaiting.length" nzSuffix="个"></nz-statistic>
+          <nz-statistic nzTitle="进行中" [nzValue]="schedulesDoing.length" nzSuffix="个" style="margin: 0 32px">
+          </nz-statistic>
+          <nz-statistic nzTitle="已完成" [nzValue]="schedules.length - schedulesDoing.length - schedulesWaiting.length"
+            nzSuffix="个"></nz-statistic>
+        </div>
+      </nz-page-header-content>
+    </nz-page-header>
+  </nz-header>
+  <nz-content>
+    <nz-table #basicTable [nzData]="schedules" [nzPageSize]="dataService.getPageSize(430, 44)" [nzLoading]="loading">
+      <!--document.body.offsetHeight-->
+      <thead>
+        <tr>
+          <th [nzDisabled]="schedules.length === 0" [(nzChecked)]="checked" [nzIndeterminate]="indeterminate"
+            (nzCheckedChange)="onAllChecked($event)"></th>
+          <th nzAlign="center">序列号</th>
+          <th nzAlign="center">状态</th>
+          <th nzAlign="center">开始时间</th>
+          <th nzAlign="center">结束时间</th>
+          <th nzAlign="center">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
+          <td [nzChecked]="data.checked" (nzCheckedChange)="onItemChecked(data, $event)"></td>
+          <td nzAlign="center" style="font-family: monospace;">
+            <div class="not-editable-cell">
+              {{data.value.id_.toUpperCase()}}
+            </div>
+          </td>
+          <td nzAlign="center">
+            <div class="not-editable-cell">
+              {{dataService.ORDER_STATE[data.value['state']]}}
+            </div>
+          </td>
+          <td nzAlign="center">
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['client'] ? 'black' : 'lightgrey'}">
+              {{data.value['start_time'] ? data.value['start_time'] : '—'}}
+            </div>
+          </td>
+          <td nzAlign="center">
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['client'] ? 'black' : 'lightgrey'}">
+              {{data.value['done_time'] ? data.value['done_time'] : '—'}}
+            </div>
+          </td>
+          <td [nzAlign]="data.value['remark'] ? 'left' : 'center'">
+            <div class="not-editable-cell" [ngStyle]="{'color': data.value['area'] ? 'black' : 'lightgrey'}">
+              {{data.value['remark'] ? data.value['remark'] : '—'}}
+            </div>
+          </td>
+          <td nzAlign="center">
+            <a [routerLink]="data.value.id_">编辑</a>
+            <nz-divider nzType="vertical"></nz-divider>
+            <a>删除</a>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </nz-content>
+</nz-layout>

@@ -14,7 +14,9 @@ interface temp {
 export class DataService {
   info!: {
     workshop: string | null,
-    role: string | null
+    role: string | null,
+    enterpriseCode: string | null,
+    enterprise: string | null,
   };
 
   ORDER_STATE: { [key: number]: string } = {
@@ -37,7 +39,6 @@ export class DataService {
   AirGratingOptions: NzSelectOptionInterface[] = [];
 
   constructor(
-    private dbService: DbService
   ) {
     this.refreshInfo();
     (window as any)['data'] = this;
@@ -47,14 +48,12 @@ export class DataService {
     }))
   }
 
-  get db() {
-    return this.dbService
-  }
-
   refreshInfo() {
     this.info = {
       workshop: sessionStorage.getItem('workshop'),
-      role: sessionStorage.getItem('role')
+      role: sessionStorage.getItem('role'),
+      enterpriseCode: sessionStorage.getItem('enterpriseCode'),
+      enterprise: sessionStorage.getItem('enterprise'),
     };
   }
 

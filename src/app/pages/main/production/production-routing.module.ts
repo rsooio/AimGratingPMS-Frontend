@@ -1,3 +1,4 @@
+import { ScheduleComponent } from './schedule/schedule.component';
 import { ColorComponent } from './color/color.component';
 import { TextureComponent } from './texture/texture.component';
 import { TechnologyComponent } from './technology/technology.component';
@@ -9,6 +10,7 @@ const routes: Routes = [
   { path: 'technologies', component: TechnologyComponent, data: { keep: true } },
   { path: 'technologies/:id', component: TextureComponent, data: { keep: true } },
   { path: 'technologies/:id/:texture', component: ColorComponent, data: { keep: true } },
+  { path: 'schedule', component: ScheduleComponent, data: { keep: true } },
 ];
 
 @NgModule({

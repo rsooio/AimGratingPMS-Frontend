@@ -24,11 +24,12 @@
       <nz-page-header-content>
         <!-- <div style="display: flex; justify-content: space-between;"> -->
         <div style="display: flex;">
-          <nz-statistic nzTitle="状态" [nzValue]="dataService.ORDER_STATE[order['state']]"></nz-statistic>
-          <nz-statistic nzTitle="面积" [nzValue]="order['area'] ? order['area'] : 0" nzSuffix="㎡" style="margin: 0 32px">
+          <nz-statistic nzTitle="状态" [nzValue]="order ? dataService.ORDER_STATE[order['state']] : '加载中'"></nz-statistic>
+          <nz-statistic nzTitle="面积" [nzValue]="order && order['area'] ? order['area'] : 0" nzSuffix="㎡"
+            style="margin: 0 32px">
           </nz-statistic>
           <nz-statistic *ngIf="true" nzTitle="价格" style=" margin-right: 32px;"
-            [nzValue]="order['price'] ? order['price'] : 0" nzPrefix="¥">
+            [nzValue]="order && order['price'] ? order['price'] : 0" nzPrefix="¥">
           </nz-statistic>
           <!--          <div style="flex-grow: 1;">-->
           <!--            <div>select</div>-->
@@ -37,7 +38,7 @@
           <!--              [nzFilterOption]="pinyin.SearchByPinyin">-->
           <!--            </nz-select>-->
           <!--          </div>-->
-          <table style="flex-grow: 1;">
+          <table style="flex-grow: 1;" *ngIf="order">
             <tbody>
               <tr>
                 <td class="unit" width="25%">
@@ -46,7 +47,7 @@
                     {{'客户：' + (order['client'] ? clientService.cache[order['client']] : '—')}}
                   </div>
                   <nz-select style="display: block; width: 100%;" nzSize="small" *ngIf="order['edit'] === 1"
-                    nzShowSearch nzPlaceHolder="选择用户" (ngModelChange)="select(order, $event)"
+                    nzShowSearch nzPlaceHolder="选择用户" (ngModelChange)="select(order, 'client', $event)"
                     [(ngModel)]="order['client']" (nzBlur)="clearFocus(order)" [nzOptions]="clientService.options"
                     [nzFilterOption]="pinyin.SearchByPinyin" [nzOpen]="order['edit'] === 1"
                     [cdkTrapFocusAutoCapture]="order['edit'] === 1" [cdkTrapFocus]="order['edit'] === 1">
@@ -61,7 +62,7 @@
                     [(ngModel)]="order['linkman']" [cdkTrapFocusAutoCapture]="order['edit'] === 2"
                     [cdkTrapFocus]="order['edit'] === 2" (ngModelChange)="order['change'] = true" />
                 </td>
-                <td class="unit" width="25%">
+                <td class="unit" width="25%" colspan="2">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 3" (click)="order['edit'] = 3"
                     [ngStyle]="{'color': order['link'] ? 'black' : 'lightgrey'}">
                     {{'联系方式：' + (order['link'] ? order['link'] : '—')}}
@@ -70,15 +71,15 @@
                     [(ngModel)]="order['link']" [cdkTrapFocusAutoCapture]="order['edit'] === 3"
                     [cdkTrapFocus]="order['edit'] === 3" (ngModelChange)="order['change'] = true" />
                 </td>
-                <td class="unit" style="height: 100%;" width="25%" rowspan="2">
-                  <div class="cell" style="display: block; height: 58px;" *ngIf="order['edit'] !== 4"
-                    (click)="order['edit'] = 4" [ngStyle]="{'color': order['remark'] ? 'black' : 'lightgrey'}">
-                    {{'备注：' + (order['remark'] ? order['remark'] : '—')}}
+                <td class="unit" style="height: 100%;" width="25%" rowspan="1">
+                  <div class="cell" style="display: block; height: auto;" *ngIf="order['edit'] !== 4"
+                    (click)="order['edit'] = 4" [ngStyle]="{'color': order['date'] ? 'black' : 'lightgrey'}">
+                    {{'时间：' + (date ? date : '—')}}
                   </div>
-                  <textarea style="padding: 0 1px; height: 57px; width: 100%; resize: none;" nzSize="small" nz-input
-                    type="text" *ngIf="order['edit'] === 4" (blur)="update(order)" [(ngModel)]="order['remark']"
-                    [cdkTrapFocusAutoCapture]="order['edit'] === 4" [cdkTrapFocus]="order['edit'] === 4"
-                    (ngModelChange)="order['change'] = true"></textarea>
+                  <nz-date-picker *ngIf="order['edit'] === 4" nzSize='small' (blur)="clearFocus(order)"
+                    nzOpen="order['edit'] === 4" [(ngModel)]="order['date']"
+                    [cdkTrapFocusAutoCapture]="order['edit'] === 3" [cdkTrapFocus]="order['edit'] === 3"
+                    (ngModelChange)="select(order, 'date', $event)"></nz-date-picker>
                 </td>
               </tr>
               <tr>
@@ -91,7 +92,7 @@
                     [(ngModel)]="order['code']" [cdkTrapFocusAutoCapture]="order['edit'] === 5"
                     [cdkTrapFocus]="order['edit'] === 5" (ngModelChange)="order['change'] = true" />
                 </td>
-                <td class="unit" width="50%" colspan="2">
+                <td class="unit" width="35%" colspan="2">
                   <div class="cell" style="display: block;" *ngIf="order['edit'] !== 6" (click)="order['edit'] = 6"
                     [ngStyle]="{'color': order['address'] ? 'black' : 'lightgrey'}">
                     {{'地址：' + (order['address'] ? order['address'] : '—')}}
@@ -99,6 +100,15 @@
                   <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 6" (blur)="update(order)"
                     [(ngModel)]="order['address']" [cdkTrapFocusAutoCapture]="order['edit'] === 6"
                     [cdkTrapFocus]="order['edit'] === 6" (ngModelChange)="order['change'] = true" />
+                </td>
+                <td class="unit" style="height: 100%;" width="40%" colspan="2">
+                  <div class="cell" style="display: block; height: auto;" *ngIf="order['edit'] !== 7"
+                    (click)="order['edit'] = 7" [ngStyle]="{'color': order['remark'] ? 'black' : 'lightgrey'}">
+                    {{'备注：' + (order['remark'] ? order['remark'] : '—')}}
+                  </div>
+                  <input nzSize="small" nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 7"
+                    (blur)="update(order)" [(ngModel)]="order['remark']" [cdkTrapFocusAutoCapture]="order['edit'] === 7"
+                    [cdkTrapFocus]="order['edit'] === 7" (ngModelChange)="order['change'] = true" />
                 </td>
               </tr>
             </tbody>
@@ -109,7 +119,7 @@
   </nz-header>
   <nz-content>
     <nz-table #basicTable [nzData]="productSets" nzTableLayout="fixed" [nzPageSize]="dataService.getPageSize(440, 44)"
-      [nzLoading]="loading">
+      [nzLoading]="!order">
       <thead>
         <tr>
           <th nzWidth="30px"></th>

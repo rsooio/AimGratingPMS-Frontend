@@ -30,6 +30,7 @@ import { ClientComponent } from './client/client.component';
 import { ClientpriceComponent } from './clientprice/clientprice.component';
 import { OrdertypeinComponent } from './ordertypein/ordertypein.component'
 import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 @NgModule({
   declarations: [
@@ -64,6 +65,7 @@ import { NzModalModule } from 'ng-zorro-antd/modal';
     NzSwitchModule,
     A11yModule,
     NzModalModule,
+    NzDatePickerModule,
   ]
 })
 export class SalesModule { }

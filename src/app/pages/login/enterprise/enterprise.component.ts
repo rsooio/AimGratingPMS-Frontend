@@ -1,3 +1,4 @@
+import { UtilsService } from '@/services/utils/utils.service';
 import { DataService } from './../../../services/data/data.service';
 import { EnterpriseDocument, EnterpriseDocType } from './../../../schemas/enterprise';
 import { DbService } from './../../../services/db/db.service';
@@ -20,7 +21,8 @@ export class EnterpriseComponent implements OnInit {
     private router: Router,
     private organization: OrganizationService,
     private db: DbService,
-    private data: DataService
+    private data: DataService,
+    private utilsService: UtilsService,
   ) { }
 
   ngOnInit(): void {
@@ -28,6 +30,7 @@ export class EnterpriseComponent implements OnInit {
 
   disabled: boolean = false
   enterprise: string | null = null;
+  enterpriseCode?: string;
   status: NzStatus = "";
   errorMessage: string = "企业查询失败，请确认后重试！"
   checked: boolean = false;
@@ -55,29 +58,8 @@ export class EnterpriseComponent implements OnInit {
   selectEnterprise() {
     this.disabled = true;
     if (this.enterprise == null) return
-    this.enterprise = this.enterprise.toLowerCase()
-    // this.status = "";
-    // this.organization.getEnterpriseIdByName(this.enterprise)
-    //   .pipe(catchError(this.handleError))
-    //   .subscribe({
-    //     next: m => {
-    //       console.log(m)
-    //       if (m.code == 0) {
-    //         this.data.enterprise.name = <string>this.enterprise
-    //         this.data.enterprise.id = m.data.id
-    //         this.router.navigate(['/login/staffer'])
-    //       } else {
-    //         this.status = "warning"
-    //       }
-    //       this.disabled = false;
-    //     },
-    //     error: e => {
-    //       this.status = "error"
-    //       this.disabled = false;
-    //     }
-    //   })
-
-    this.db.db.enterprise.Remote?.get(this.enterprise).then(m => {
+    this.enterpriseCode = this.utilsService.encode(this.enterprise)
+    this.db.enterprise.Remote?.get(this.enterpriseCode).then(m => {
       this.success()
     }).catch(e => {
       if (e.status == 404) this.failed()
@@ -91,8 +73,10 @@ export class EnterpriseComponent implements OnInit {
   }
 
   async success() {
-    if (!this.enterprise) return;
+    if (!this.enterprise || !this.enterpriseCode) return;
     sessionStorage.setItem('enterprise', this.enterprise)
+    sessionStorage.setItem('enterpriseCode', this.enterpriseCode)
+    this.data.refreshInfo();
     this.router.navigate(['/login/staffer'])
   }
 

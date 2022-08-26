@@ -1,3 +1,5 @@
+import { UtilsService } from '@/services/utils/utils.service';
+import { DataService } from './../data/data.service';
 import { stafferCollection, StafferDocType } from './../../schemas/staffer';
 import { enterpriseCollection, EnterpriseDocument } from './../../schemas/enterprise';
 import { IS_SERVER_SIDE_RENDERING, SYNC_ENDPOINT } from './shared';
@@ -30,6 +32,22 @@ interface connects {
   enterprise: connect
 }
 
+export interface Doc {
+  [x: string]: any
+  id_: string
+  type_?: string
+  _deleted?: boolean
+  _id?: string
+  _rev?: string
+}
+
+export interface GetDoc extends PouchDB.Core.IdMeta, PouchDB.Core.GetMeta {
+  [x: string]: any
+  id_: string
+  type_: string
+  _deleted?: boolean
+};
+
 function nullConnection(name: string): connect {
   return {
     Local: null,
@@ -45,19 +63,20 @@ function nullConnection(name: string): connect {
   providedIn: 'root'
 })
 export class DbService {
-  db: connects = {
-    order: nullConnection('order'),
-    client: nullConnection('client'),
-    staffer: nullConnection('staffer'),
-    technology: nullConnection('technology'),
-    production: nullConnection('production'),
-    enterprise: nullConnection('enterprise')
-  }
+  enterprise: connect = nullConnection('enterprise');
+  Local: PouchDB.Database<Doc> | null = null;
+  Remote: PouchDB.Database<Doc> | null = null;
+  Connection: PouchDB.Replication.Sync<Doc> | null = null;
+  Changes: PouchDB.Core.Changes<Doc> | null = null;
+  Stream: Subject<GetDoc> = new Subject<GetDoc>();
 
-  constructor() {
-    this.db.enterprise.Local = new PouchDB<{ [key in string]: any }>('enterprise');
-    this.db.enterprise.Remote = new PouchDB<{ [key in string]: any }>(SYNC_ENDPOINT + 'enterprise');
-    this.db.enterprise.Socket = this.db.enterprise.Local.sync(this.db.enterprise.Remote, {
+  constructor(
+    private dataService: DataService,
+    private utilsService: UtilsService,
+  ) {
+    this.enterprise.Local = new PouchDB<Doc>('enterprise');
+    this.enterprise.Remote = new PouchDB<Doc>(SYNC_ENDPOINT + 'enterprise');
+    this.enterprise.Socket = this.enterprise.Local.sync(this.enterprise.Remote, {
       live: true,
       retry: true,
     }).on('change', m => console.log('enterprise', m))
@@ -68,11 +87,9 @@ export class DbService {
   }
 
   private reload() {
-    let enterprise = sessionStorage.getItem('enterprise');
-    let workshop = sessionStorage.getItem('workshop')
-    let role = sessionStorage.getItem('role')
-    if (workshop && role && enterprise) {
-      this.connect(enterprise, workshop, role)
+    const info = this.dataService.info;
+    if (info.workshop && info.role && info.enterpriseCode) {
+      this.connect(info.enterpriseCode, info.workshop, info.role)
     }
   }
 
@@ -84,48 +101,78 @@ export class DbService {
     return options
   }
 
-  private _connect(connect: connect, enterprise: string, workshop: string, role: string) {
-    if (connect.Socket) connect.Socket.cancel()
-    connect.Local = new PouchDB<{ [key in string]: any }>(enterprise + '-' + connect.name);
-    connect.Remote = new PouchDB<{ [key in string]: any }>(SYNC_ENDPOINT + enterprise + '-' + connect.name);
-    connect.Socket = connect.Local.sync(connect.Remote, this.filterOptions({
+  async connect(enterprise: string, workshop: string, role: string) {
+    if (this.Connection) this.Connection.cancel()
+    this.Local = new PouchDB<Doc>(enterprise);
+    this.Remote = new PouchDB<Doc>(SYNC_ENDPOINT + enterprise);
+    this.Connection = this.Local.sync(this.Remote, this.filterOptions({
       live: true,
       retry: true,
     }, workshop, role))
-    connect.Changes = connect.Local.changes({ live: true, since: 'now' })
-    console.log(connect.name, 'connected.')
-    connect.Changes
+    this.Changes = this.Local.changes({ live: true, since: 'now' })
+    console.log(enterprise, 'connected.')
+    this.Changes
       ?.on('change', m => {
-        console.log(connect.name, 'changed.')
+        console.log(enterprise, 'changed.')
         if (m.deleted) {
-          connect.Pipe.next({
-            '_deleted': true,
-            '_id': m.id,
-            '_rev': m.changes[0].rev
+          this.Stream.next({
+            _deleted: true,
+            _id: m.id,
+            _rev: m.changes[0].rev,
+            type_: m.id.split('/')[0],
+            id_: '',
           })
         } else {
-          connect.Local?.get(m.id)
+          this.Local?.get(m.id)
             .then(m => {
-              connect.Pipe.next(m);
+              this.Stream.next(m as GetDoc);
             })
-            .catch(e => connect.Pipe.error(e))
+            .catch(e => this.Stream.error(e))
         }
       })
       .on('error', e => {
-        connect.Pipe.error(e)
+        this.Stream.error(e)
       })
       .on('complete', f => {
         console.log('unsubscribe')
-        connect.Pipe.unsubscribe()
+        this.Stream.complete()
       })
   }
 
+  async put(type: string, data: Doc, options?: PouchDB.Core.PutOptions) {
+    if (!this.Local) throw new Error('database not establish');
+    if (!this.dataService.info.workshop) throw new Error('login info loss');
+    data['workshop_'] = this.dataService.info.workshop;
+    data.type_ = type;
+    if (!data._id) data._id = data.type_ + '/' + data.id_;
+    return this.Local.put(data, options || {});
+  }
 
-  async connect(enterprise: string, workshop: string, role: string) {
-    this._connect(this.db.staffer, enterprise, workshop, role)
-    this._connect(this.db.order, enterprise, workshop, role)
-    this._connect(this.db.technology, enterprise, workshop, role)
-    this._connect(this.db.client, enterprise, workshop, role)
+  async get(type: string, docId: string, options?: PouchDB.Core.GetOptions) {
+    if (!this.Local) throw new Error('database not establish');
+    return this.Local.get(type + '/' + docId, options || {})
+  }
+
+  find(type: string, request?: PouchDB.Find.FindRequest<Doc>) {
+    return new Observable<GetDoc>(o => {
+      if (!this.Local) {
+        o.error(new Error('database not establish'));
+        o.complete();
+      } else {
+        if (!request) request = { selector: {} };
+        request.selector['type_'] = type;
+        if (this.dataService.info.role != 'boss') {
+          request.selector['workshop'] = this.dataService.info.workshop;
+        }
+        this.Local.find(request)
+          .then(m => {
+            m.docs.forEach(v => {
+              o.next(v as GetDoc);
+            })
+          })
+          .finally(() => o.complete())
+      }
+    })
   }
 
   // async connect() {

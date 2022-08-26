@@ -1,10 +1,17 @@
 import { ActivatedRoute, Router } from '@angular/router';
 import { DataService } from '@/services/data/data.service';
-import { DbService } from '@/services/db/db.service';
+import { DbService, Doc, GetDoc } from '@/services/db/db.service';
 import { PinyinService } from '@/services/pinyin/pinyin.service';
 import { RandomService } from '@/services/random/random.service';
 import { TechnologyService } from '@/services/technology/technology.service';
 import { Component, OnInit } from '@angular/core';
+import { filter } from 'rxjs';
+
+interface data {
+  value: { [x: string]: any }
+  checked: boolean
+  key: string
+}
 
 @Component({
   selector: 'app-texture',
@@ -14,6 +21,9 @@ import { Component, OnInit } from '@angular/core';
 export class TextureComponent implements OnInit {
   createTextureButtonDisabled = false
   id: any;
+  technology?: GetDoc;
+  textureMap: { [x: string]: any } = {};
+  textures: data[] = [];
 
   patterns = [
     '和差', '比例'
@@ -22,58 +32,76 @@ export class TextureComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    public data: DataService,
-    private technologies: TechnologyService,
-    public pinyin: PinyinService,
-    private random: RandomService,
-    private db: DbService,
-  ) {
+    public dataService: DataService,
+    private technologyService: TechnologyService,
+    public pinyinService: PinyinService,
+    private randomService: RandomService,
+  ) { }
+
+  ngOnInit(): void {
     this.route.params.subscribe({
       next: m => {
         this.id = m['id']
       }
     })
+    setTimeout(() => {
+      this.technologyService.Stream
+        .pipe(filter(m => m.id_ == this.id))
+        .subscribe(m => this.fetchData(m))
+      this.fetchData(this.technologyService.doc(this.id))
+    }, 0);
   }
 
-  get technology(): { [x: string]: any } {
-    if (this.technologies.data[this.id]) {
-      return this.technologies.data[this.id]
-    }
-    return {}
+  fetchData(technology: GetDoc) {
+    if (!technology) return;
+    this.technology = technology
+    this.textures = [];
+    Object.keys(this.technology['textures'])
+      .forEach(k => {
+        this.textures.unshift({
+          checked: false,
+          value: this.technology!['textures'][k],
+          key: k
+        })
+      })
   }
 
-  get dataList(): string[] {
-    if (this.technology['textures']) {
-      return Object.keys(this.technology['textures'])
-    }
-    return []
-  }
+  // get technology(): { [x: string]: any } {
+  //   if (this.technologies.data[this.id]) {
+  //     return this.technologies.data[this.id]
+  //   }
+  //   return {}
+  // }
 
-  dataItem(key: string) {
-    return this.technology['textures'][key]
-  }
+  // get dataList(): string[] {
+  //   if (this.technology['textures']) {
+  //     return Object.keys(this.technology['textures'])
+  //   }
+  //   return []
+  // }
 
-  ngOnInit(): void {
-  }
+  // dataItem(key: string) {
+  //   return this.technology['textures'][key]
+  // }
 
   onBack() {
     this.router.navigate(['/main/production/technologies'])
   }
 
   createTexture() {
-    this.random.string(4)
+    this.randomService.string(4)
       .then(id => {
-        if (this.dataItem(id)) {
+        if (this.technology!['textures'][id]) {
           this.createTexture();
         } else {
-          this.technology['textures'][id] = {
+          this.technology!['textures'][id] = {
             colors: {},
           };
           console.log(this.technology)
-          this.db.db.technology.Local
-            ?.put(this.technology)
+          this.technologyService
+            .put(this.technology!)
             .catch(() => {
-              delete this.technology['textures'][id];
+              delete this.technology!['textures'][id];
               this.createTexture();
             })
         }
@@ -86,25 +114,25 @@ export class TextureComponent implements OnInit {
     }
     if (data['change']) {
       delete data['change'];
-      this.db.db.technology.Local
-        ?.put(this.technology);
+      this.technologyService
+        .put(this.technology!);
     }
   }
 
   delete(key: string) {
-    if (this.technology['texture'][key]) {
-      delete this.technology['texture'][key]
+    if (this.technology!['textures'][key]) {
+      delete this.technology!['textures'][key]
     }
-    this.db.db.technology.Local
-      ?.put(this.technology);
+    this.technologyService
+      .put(this.technology!);
   }
 
   patternSelect(data: { [x: string]: any }) {
     if (data['edit']) {
       delete data['edit']
     }
-    this.db.db.technology.Local
-      ?.put(this.technology);
+    this.technologyService
+      .put(this.technology!);
   }
 
   clearFocus(data: { [x: string]: any }) {

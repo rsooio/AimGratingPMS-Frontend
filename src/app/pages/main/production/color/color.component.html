@@ -6,7 +6,7 @@
           <a routerLink="../..">工艺管理</a>
         </nz-breadcrumb-item>
         <nz-breadcrumb-item>
-          <a routerLink="..">{{technology['name'] ? technology['name'] : '未命名'}}</a>
+          <a routerLink="..">{{technology && technology['name'] ? technology['name'] : '未命名'}}</a>
         </nz-breadcrumb-item>
         <nz-breadcrumb-item>
           <a routerLink=".">{{texture['name'] ? texture['name'] : '未命名'}}</a>
@@ -23,7 +23,7 @@
       <nz-page-header-content>
         <!-- <div style="display: flex; justify-content: space-between;"> -->
         <div style="display: flex;">
-          <nz-statistic nzTitle="数量" [nzValue]="dataList.length" nzSuffix="种"></nz-statistic>
+          <nz-statistic nzTitle="数量" [nzValue]="colors.length" nzSuffix="种"></nz-statistic>
           <!-- <div style="display: flex; flex-wrap: wrap; width: 50%;">
             <div style="width: 30%" class="input-cell">
               <p nz-typography nzEditable>客户：美的黄总</p>
@@ -79,44 +79,44 @@
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="dataList">
+    <nz-table #basicTable [nzData]="colors" nzTableLayout="fixed" [nzLoading]="!technology">
       <thead>
         <tr>
-          <th>名称</th>
-          <th>描述</th>
-          <th>调整方式</th>
-          <th>调整因子</th>
-          <th>备注</th>
-          <th>操作</th>
+          <th nzAlign="center" nzEllipsis nzWidth="15%">名称</th>
+          <th nzAlign="center" nzEllipsis nzWidth="20%">描述</th>
+          <th nzAlign="center" nzEllipsis nzWidth="12.5%">调整方式</th>
+          <th nzAlign="center" nzEllipsis nzWidth="12.5%">调整因子</th>
+          <th nzAlign="center" nzEllipsis nzWidth="20%">备注</th>
+          <th nzAlign="center" nzEllipsis nzWidth="20%">操作</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let key of basicTable.data">
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 1" (click)="dataItem(key)['edit'] = 1">
-              {{dataItem(key)['name'] ? dataItem(key)['name'] : '无数据'}}
+        <tr *ngFor="let data of basicTable.data">
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" [hidden]="data.value['edit'] === 1" (click)="data.value['edit'] = 1">
+              {{data.value['name'] ? data.value['name'] : '无数据'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 1" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['name']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 1"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 1" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" [hidden]="data.value['edit'] !== 1" (blur)="change(data.value)"
+              [(ngModel)]="data.value['name']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 1"
+              [cdkTrapFocus]="data.value['edit'] === 1" (ngModelChange)="data.value['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 2" (click)="dataItem(key)['edit'] = 2">
-              {{dataItem(key)['describe'] ? dataItem(key)['describe'] : '-'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" [hidden]="data.value['edit'] === 2" (click)="data.value['edit'] = 2">
+              {{data.value['describe'] ? data.value['describe'] : '-'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 2" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['describe']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 2"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 2" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" [hidden]="data.value['edit'] !== 2" (blur)="change(data.value)"
+              [(ngModel)]="data.value['describe']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 2"
+              [cdkTrapFocus]="data.value['edit'] === 2" (ngModelChange)="data.value['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 3" (click)="dataItem(key)['edit'] = 3">
-              {{dataItem(key)['pattern'] ? dataItem(key)['pattern'] : '无数据'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" [hidden]="data.value['edit'] === 3" (click)="data.value['edit'] = 3">
+              {{data.value['pattern'] ? data.value['pattern'] : '无数据'}}
             </div>
-            <nz-select style="position: relative; width: 100%" [hidden]="dataItem(key)['edit'] !== 3" nzShowSearch
-              nzPlaceHolder="选择工艺" [nzCustomTemplate]="selected_technology" [(ngModel)]="dataItem(key)['pattern']"
-              (ngModelChange)="patternSelect(dataItem(key))" [nzOpen]="dataItem(key)['edit'] === 3"
-              (nzBlur)="clearFocus(dataItem(key))">
-              <nz-option *ngFor="let name of patterns" [nzLabel]="pinyin.firstLetter(name)" [nzValue]="name"
+            <nz-select style="position: relative; width: 100%" [hidden]="data.value['edit'] !== 3" nzShowSearch
+              nzPlaceHolder="选择模式" [nzCustomTemplate]="selected_technology" [(ngModel)]="data.value['pattern']"
+              (ngModelChange)="patternSelect(data.value)" [nzOpen]="data.value['edit'] === 3"
+              (nzBlur)="clearFocus(data.value)">
+              <nz-option *ngFor="let name of patterns" [nzLabel]="pinyinService.firstLetter(name)" [nzValue]="name"
                 nzCustomContent="true">
                 {{name}}
               </nz-option>
@@ -125,24 +125,24 @@
               </ng-template>
             </nz-select>
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 4" (click)="dataItem(key)['edit'] = 4">
-              {{dataItem(key)['factor'] ? dataItem(key)['factor'] : '无数据'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" [hidden]="data.value['edit'] === 4" (click)="data.value['edit'] = 4">
+              {{data.value['factor'] ? data.value['factor'] : '无数据'}}
             </div>
-            <input nz-input type="number" [hidden]="dataItem(key)['edit'] !== 4" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['factor']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 4"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 4" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="number" [hidden]="data.value['edit'] !== 4" (blur)="change(data.value)"
+              [(ngModel)]="data.value['factor']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 4"
+              [cdkTrapFocus]="data.value['edit'] === 4" (ngModelChange)="data.value['change'] = true" />
           </td>
-          <td class="editable-unit">
-            <div class="editable-cell" [hidden]="dataItem(key)['edit'] === 5" (click)="dataItem(key)['edit'] = 5">
-              {{dataItem(key)['remark'] ? dataItem(key)['remark'] : '-'}}
+          <td nzAlign="center" nzEllipsis class="editable-unit">
+            <div class="editable-cell" [hidden]="data.value['edit'] === 5" (click)="data.value['edit'] = 5">
+              {{data.value['remark'] ? data.value['remark'] : '-'}}
             </div>
-            <input nz-input type="text" [hidden]="dataItem(key)['edit'] !== 5" (blur)="change(dataItem(key))"
-              [(ngModel)]="dataItem(key)['remark']" [cdkTrapFocusAutoCapture]="dataItem(key)['edit'] === 5"
-              [cdkTrapFocus]="dataItem(key)['edit'] === 5" (ngModelChange)="dataItem(key)['change'] = true" />
+            <input nz-input type="text" [hidden]="data.value['edit'] !== 5" (blur)="change(data.value)"
+              [(ngModel)]="data.value['remark']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 5"
+              [cdkTrapFocus]="data.value['edit'] === 5" (ngModelChange)="data.value['change'] = true" />
           </td>
-          <td>
-            <a (click)="delete(key)">删除</a>
+          <td nzAlign="center" nzEllipsis>
+            <a (click)="delete(data.key)">删除</a>
           </td>
         </tr>
       </tbody>

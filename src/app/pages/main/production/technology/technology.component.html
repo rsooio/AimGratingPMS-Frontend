@@ -19,14 +19,14 @@
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="technologies">
+    <nz-table #basicTable [nzData]="technologies" nzTableLayout="fixed" [nzLoading]="!technologies">
       <thead>
         <tr>
           <th nzAlign="center" nzEllipsis nzWidth="15%">名称</th>
           <th nzAlign="center" nzEllipsis nzWidth="20%">描述</th>
-          <th nzAlign="center" nzEllipsis nzWidth="15%">调整方式</th>
-          <th nzAlign="center" nzEllipsis nzWidth="15%">调整因子</th>
-          <th nzAlign="center" nzEllipsis nzWidth="15%">备注</th>
+          <th nzAlign="center" nzEllipsis nzWidth="12.5%">调整方式</th>
+          <th nzAlign="center" nzEllipsis nzWidth="12.5%">调整因子</th>
+          <th nzAlign="center" nzEllipsis nzWidth="20%">备注</th>
           <th nzAlign="center" nzEllipsis nzWidth="20%">操作</th>
         </tr>
       </thead>
@@ -70,8 +70,8 @@
           </td>
           <td nzAlign="center" nzEllipsis class="editable-unit">
             <div class="editable-cell" [hidden]="data.value['edit'] === 4" (click)="data.value['edit'] = 4"
-              [ngStyle]="{'color': data.value['factor'] ? 'black' : 'lightgrey'}">
-              {{data.value['factor'] ? data.value['factor'] : '—'}}
+              [ngStyle]="{'color': data.value['factor'] != null ? 'black' : 'lightgrey'}">
+              {{data.value['factor'] != null ? data.value['factor'] : '—'}}
             </div>
             <input nz-input type="number" [hidden]="data.value['edit'] !== 4" (blur)="change(data.value)"
               [(ngModel)]="data.value['factor']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 4"
@@ -87,7 +87,7 @@
               [cdkTrapFocus]="data.value['edit'] === 5" (ngModelChange)="data.value['change'] = true" />
           </td>
           <td nzAlign="center" nzEllipsis>
-            <a [routerLink]="data.value._id">材质管理</a>
+            <a [routerLink]="data.value.id_">材质管理</a>
             <nz-divider nzType="vertical"></nz-divider>
             <a (click)="delete(data)">删除</a>
           </td>
