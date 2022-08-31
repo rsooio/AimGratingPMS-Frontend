@@ -1,3 +1,4 @@
+import { ScheduleselectComponent } from './scheduleselect/scheduleselect.component';
 import { ScheduleComponent } from './schedule/schedule.component';
 import { ColorComponent } from './color/color.component';
 import { TextureComponent } from './texture/texture.component';
@@ -11,6 +12,7 @@ const routes: Routes = [
   { path: 'technologies/:id', component: TextureComponent, data: { keep: true } },
   { path: 'technologies/:id/:texture', component: ColorComponent, data: { keep: true } },
   { path: 'schedule', component: ScheduleComponent, data: { keep: true } },
+  { path: 'schedule/:id/select', component: ScheduleselectComponent, data: { keep: true, singleRoute: 'scheduleselect' } },
 ];
 
 @NgModule({

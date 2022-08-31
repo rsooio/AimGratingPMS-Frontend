@@ -21,6 +21,7 @@ export class SimpleReuseStrategy implements RouteReuseStrategy {
 
   // one 进入路由触发，是否同一路由时复用路由
   shouldReuseRoute(future: ActivatedRouteSnapshot, curr: ActivatedRouteSnapshot): boolean {
+    // if (future.routeConfig?.data && future.routeConfig.data['singleRoute'] != undefined ) return false;
     return future.routeConfig === curr.routeConfig &&
       JSON.stringify(future.params) === JSON.stringify(curr.params);
   }
@@ -30,10 +31,12 @@ export class SimpleReuseStrategy implements RouteReuseStrategy {
     if (route.data['keep']) {
       const key = route.data['singleRoute']
       if (key && SimpleReuseStrategy.cacheRouters.has(key)) {
+        // console.log('fetch', key)
         return SimpleReuseStrategy.cacheRouters.get(key) || '';
       } else {
         const url = this.getFullRouteURL(route);
         if (SimpleReuseStrategy.cacheRouters.has(url)) {
+          // console.log('fetch', url)
           return SimpleReuseStrategy.cacheRouters.get(url) || '';
         }
       }
@@ -45,19 +48,24 @@ export class SimpleReuseStrategy implements RouteReuseStrategy {
   shouldDetach(route: ActivatedRouteSnapshot): boolean {
     return Boolean(route.data['keep']);
   }
+
   // 当路由离开时会触发，存储路由
   store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle): void {
     if (route.data['singleRoute']) {
+      // console.log('store', route.data['singleRoute']);
       SimpleReuseStrategy.cacheRouters.set(route.data['singleRoute'], handle);
     } else {
       const url = this.getFullRouteURL(route);
+      // console.log('store', url);
       SimpleReuseStrategy.cacheRouters.set(url, handle);
     }
   }
+
   //  是否允许还原路由
   shouldAttach(route: ActivatedRouteSnapshot): boolean {
     const url = this.getFullRouteURL(route);
-    return Boolean(route.data['keep']) && SimpleReuseStrategy.cacheRouters.has(url);
+    const key = route.data['singleRoute']
+    return Boolean(route.data['keep'] && SimpleReuseStrategy.cacheRouters.has(url) || SimpleReuseStrategy.cacheRouters.has(key));
   }
 
   // 获取当前路由url
@@ -70,6 +78,7 @@ export class SimpleReuseStrategy implements RouteReuseStrategy {
     return `/${fullRouteUrlPath.join('/')}`;
 
   }
+
   private getRouteUrlPath(route: ActivatedRouteSnapshot) {
     return route.url.map(urlSegment => urlSegment.path);
   }

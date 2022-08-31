@@ -33,14 +33,21 @@ export class AllorderComponent implements OnInit {
     setTimeout(() => {
       this.orderService.Stream
         .subscribe(m => {
+          let index = this.orders.findIndex(order => order.value._id == m._id)
           if (m._deleted) {
-            this.orders.splice(this.orders.findIndex(v => v.value._id == m._id), 1);
+            if (index != -1) {
+              this.orders.splice(index, 1);
+            }
           } else {
-            const index = this.orders.findIndex(order => order.value._id == m._id)
             if (index != -1) {
               this.orders[index].value = m;
             } else {
-              this.orders.unshift({ checked: false, value: m });
+              index = this.orders.findIndex(n => n.value['create_time'] < m['create_time']);
+              if (index != -1) {
+                this.orders.splice(index, 0, { checked: false, value: m });
+              } else {
+                this.orders.push({ checked: false, value: m });
+              }
             }
           }
           this.orders = this.orders.slice();

@@ -1,3 +1,6 @@
+import { ClientService } from './../../../../services/client/client.service';
+import { UtilsService } from './../../../../services/utils/utils.service';
+import { DataService } from './../../../../services/data/data.service';
 import { GetDoc } from '@/services/db/db.service';
 import { OrderService } from '@/services/order/order.service';
 import { ScheduleService } from '@/services/schedule/schedule.service';
@@ -19,21 +22,28 @@ export class ScheduleselectComponent implements OnInit {
   id?: string;
   orders: data[] = [];
   loading: boolean = true;
+  checked: boolean = false;
+  indeterminate: boolean = false;
 
   constructor(
-    private Router: Router,
-    private Route: ActivatedRoute,
     private scheduleService: ScheduleService,
     private orderService: OrderService,
-  ) { }
+    public dataService: DataService,
+    public utilsService: UtilsService,
+    public clientService: ClientService,
+    public router: Router,
+    public route: ActivatedRoute,
+  ) {
+    (window as any).debug = this
+  }
 
   ngOnInit(): void {
-    this.Route.params.subscribe(m => this.id = m['id'])
+    this.route.params.subscribe(m => this.id = m['id'])
     setTimeout(() => {
       this.orderService.Stream
         .pipe(filter(m => m['state'] == 1 || m['staate'] == 2))
         .subscribe(m => {
-          let index = this.orders.findIndex(n => n.value._id = m._id)
+          let index = this.orders.findIndex(n => n.value._id === m._id)
           if (m._deleted || m['state'] == 2) {
             if (index != -1) {
               this.orders.splice(index, 1);
@@ -62,5 +72,28 @@ export class ScheduleselectComponent implements OnInit {
       this.orders = this.orders.slice()
       this.loading = false;
     }, 0);
+  }
+
+  get checkedOrder() {
+    return this.orders.filter(m => m.checked);
+  }
+
+  get checkedArea() {
+    return this.checkedOrder.reduce((area, curr) => area + (curr.value['width'] || 0) * (curr.value['length'] || 0), 0);
+  }
+
+  refreshCheckedStatus(): void {
+    this.checked = this.orders.length != 0 && this.orders.every(order => order.checked);
+    this.indeterminate = !this.checked && this.orders.some(order => order.checked);
+  }
+
+  onItemChecked(data: data, check: boolean) {
+    data.checked = check;
+    this.refreshCheckedStatus();
+  }
+
+  onAllChecked(check: boolean) {
+    this.orders.forEach(order => order.checked = check);
+    this.refreshCheckedStatus();
   }
 }
