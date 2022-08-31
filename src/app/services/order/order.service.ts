@@ -1,6 +1,6 @@
 import { GetDoc } from '@/services/db/db.service';
 import { DataService } from '@/services/data/data.service';
-import { Observable, filter, Subject, Observer } from 'rxjs';
+import { Observable, filter, Subject, Observer, Subscription } from 'rxjs';
 import { DbService, Doc } from './../db/db.service';
 import { Injectable } from '@angular/core';
 import { MathService } from '@/services/math/math.service';
@@ -12,6 +12,7 @@ export class OrderService {
   type = 'order';
   Stream: Subject<GetDoc> = new Subject<GetDoc>();
   private _docs: { [x: string]: GetDoc } = {}
+  private _initSubscription: Subscription;
 
   constructor(
     private dbService: DbService,
@@ -27,11 +28,15 @@ export class OrderService {
           this.Stream.complete()
         }
       })
-    this.dbService.find(this.type)
+    this._initSubscription = this.dbService.find(this.type)
       .subscribe({
         next: m => this.add(m),
         error: e => this.Stream.error(e),
       })
+  }
+
+  get isInit() {
+    return this._initSubscription.closed;
   }
 
   async add(data: GetDoc) {
@@ -55,7 +60,7 @@ export class OrderService {
     return this._docs[this.type + '/' + id]
   }
 
-  docs() {
+  get docs() {
     return Object.values(this._docs);
   }
 

@@ -69,14 +69,20 @@ export class OrdertypeinComponent implements OnInit {
             if (index != -1) {
               this.orders[index].value = m;
             } else {
-              this.orders.unshift({ checked: false, value: m });
-              this.orders = this.orders.sort((a, b) => b.value['create_time'] - a.value['create_time']);
+              if (!this.orderService.isInit) {
+                const indexInsert = this.orders.findIndex(order => order.value['create_time'] <= m['create_time']);
+                if (indexInsert != -1) {
+                  this.orders.splice(indexInsert, 0, { checked: false, value: m });
+                }
+              } else {
+                this.orders.push({ checked: false, value: m });
+              }
             }
           }
           this.orders = this.orders.slice();
           this.refreshCheckedStatus();
         })
-      this.orderService.docs()
+      this.orderService.docs
         .filter(this.filter)
         .sort((a, b) => b['create_time'] - a['create_time'])
         .forEach(order => {

@@ -32,7 +32,7 @@ export class ScheduleService {
       })
   }
 
-  async add(data: GetDoc) {
+  private async add(data: GetDoc) {
     this.Stream.next(data);
     if (data['_deleted']) {
       delete this._docs[data._id!]
@@ -53,7 +53,7 @@ export class ScheduleService {
     return this._docs[this.type + '/' + id]
   }
 
-  docs() {
+  get docs() {
     return Object.values(this._docs);
   }
 }

@@ -7,7 +7,7 @@ body {
   position: relative;
 }
 
-.routerContainer > * {
+.routerContainer>* {
   position: absolute;
   left: 0;
   top: 0;
@@ -48,15 +48,15 @@ td {
   overflow: hidden;
 }
 
-// .header {
-//   // width: 100%;
-//   height: auto;
-//   padding: 0;
-//   background-color: white;
-//   display: flex;
-//   justify-content: start;
-//   align-items: center;
-// }
+.header {
+  // width: 100%;
+  height: auto;
+  padding: 0;
+  background-color: white;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+}
 
 .page-header {
   width: 100%;

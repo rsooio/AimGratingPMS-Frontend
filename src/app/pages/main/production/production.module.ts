@@ -20,6 +20,7 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { TextureComponent } from './texture/texture.component';
 import { ColorComponent } from './color/color.component';
 import { ScheduleComponent } from './schedule/schedule.component';
+import { ScheduleselectComponent } from './scheduleselect/scheduleselect.component';
 
 
 @NgModule({
@@ -27,7 +28,8 @@ import { ScheduleComponent } from './schedule/schedule.component';
     TechnologyComponent,
     TextureComponent,
     ColorComponent,
-    ScheduleComponent
+    ScheduleComponent,
+    ScheduleselectComponent
   ],
   imports: [
     CommonModule,

@@ -27,12 +27,18 @@ export class SimpleReuseStrategy implements RouteReuseStrategy {
 
   // 获取存储路由
   retrieve(route: ActivatedRouteSnapshot): DetachedRouteHandle {
-    const url = this.getFullRouteURL(route);
-    if (route.data['keep'] && SimpleReuseStrategy.cacheRouters.has(url)) {
-      return SimpleReuseStrategy.cacheRouters.get(url) || '';
-    } else {
-      return null || '';
+    if (route.data['keep']) {
+      const key = route.data['singleRoute']
+      if (key && SimpleReuseStrategy.cacheRouters.has(key)) {
+        return SimpleReuseStrategy.cacheRouters.get(key) || '';
+      } else {
+        const url = this.getFullRouteURL(route);
+        if (SimpleReuseStrategy.cacheRouters.has(url)) {
+          return SimpleReuseStrategy.cacheRouters.get(url) || '';
+        }
+      }
     }
+    return null || '';
   }
 
   // 是否允许复用路由
@@ -41,8 +47,12 @@ export class SimpleReuseStrategy implements RouteReuseStrategy {
   }
   // 当路由离开时会触发，存储路由
   store(route: ActivatedRouteSnapshot, handle: DetachedRouteHandle): void {
-    const url = this.getFullRouteURL(route);
-    SimpleReuseStrategy.cacheRouters.set(url, handle);
+    if (route.data['singleRoute']) {
+      SimpleReuseStrategy.cacheRouters.set(route.data['singleRoute'], handle);
+    } else {
+      const url = this.getFullRouteURL(route);
+      SimpleReuseStrategy.cacheRouters.set(url, handle);
+    }
   }
   //  是否允许还原路由
   shouldAttach(route: ActivatedRouteSnapshot): boolean {

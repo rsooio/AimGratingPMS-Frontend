@@ -46,7 +46,7 @@ export class AllorderComponent implements OnInit {
           this.orders = this.orders.slice();
           // this.refreshCheckedStatus();
         })
-      this.orderService.docs()
+      this.orderService.docs
         .sort((a, b) => b['create_time'] - a['create_time'])
         .forEach(order => {
           this.orders.push({

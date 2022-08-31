@@ -43,7 +43,7 @@ export class ScheduleComponent implements OnInit {
           this.schedules = this.schedules.slice();
           // this.refreshCheckedStatus();
         })
-      this.scheduleService.docs()
+      this.scheduleService.docs
         .sort((a, b) => b['create_time'] - a['create_time'])
         .forEach(order => {
           this.schedules.push({
