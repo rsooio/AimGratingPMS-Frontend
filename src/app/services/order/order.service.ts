@@ -56,6 +56,17 @@ export class OrderService {
     return this.dbService.get(this.type, docId, options);
   }
 
+  async change(id: string, convert: (m: GetDoc) => void) {
+    let doc = this.doc(id)
+    if (!doc) {
+      this.get(id).then(m => doc = m);
+    }
+  }
+
+  async bulkChange(ids: string[], convert: (m: GetDoc) => Doc) {
+    
+  }
+
   doc(id: string) {
     return this._docs[this.type + '/' + id]
   }

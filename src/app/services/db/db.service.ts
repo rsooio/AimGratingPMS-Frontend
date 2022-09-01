@@ -44,7 +44,7 @@ export interface Doc {
 export interface GetDoc extends PouchDB.Core.IdMeta, PouchDB.Core.GetMeta {
   [x: string]: any
   id_: string
-  type_: string
+  type_?: string
   _deleted?: boolean
 };
 
