@@ -41,34 +41,22 @@ export class EnterpriseComponent implements OnInit {
     }
   }
 
-  private handleError(error: HttpErrorResponse) {
-    if (error.status === 0) {
-      // A client-side or network error occurred. Handle it accordingly.
-      console.error('An error occurred:', error.error);
-    } else {
-      // The backend returned an unsuccessful response code.
-      // The response body may contain clues as to what went wrong.
-      console.error(
-        `Backend returned code ${error.status}, body was: `, error.error);
-    }
-    // Return an observable with a user-facing error message.
-    return throwError(() => new Error('Something bad happened; please try again later.'));
-  }
-
   selectEnterprise() {
     this.disabled = true;
     if (this.enterprise == null) return
-    this.enterpriseCode = this.utilsService.encode(this.enterprise)
-    this.db.enterprise.Remote?.get(this.enterpriseCode).then(m => {
-      this.success()
-    }).catch(e => {
-      if (e.status == 404) this.failed()
-      else this.error()
-      console.log('error')
-      console.log(e)
-    }).finally(() => {
-      console.log('done')
-    })
+    this.db.enterprise.Local
+      ?.get(this.enterprise).then(m => {
+        console.log(m)
+        this.enterpriseCode = m['db'];
+        this.success();
+      }).catch(e => {
+        if (e.status == 404) this.failed()
+        else this.error()
+        console.log('error')
+        console.log(e)
+      }).finally(() => {
+        console.log('done')
+      })
     this.disabled = false;
   }
 

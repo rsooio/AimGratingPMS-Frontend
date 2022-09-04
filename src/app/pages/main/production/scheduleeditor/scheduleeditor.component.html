@@ -1,28 +1,24 @@
 <nz-layout style="background-color: white;">
   <nz-header style="margin-bottom: 20px;" class="header">
-    <nz-page-header class="page-header">
-      <nz-page-header-title>订单录入</nz-page-header-title>
+    <nz-page-header class="page-header" nzBackIcon (nzBack)="back()">
+      <nz-breadcrumb nz-page-header-breadcrumb>
+        <nz-breadcrumb-item>
+          <a routerLink="..">生产计划</a>
+        </nz-breadcrumb-item>
+        <nz-breadcrumb-item>
+          <a *ngIf="id !== 'new'" routerLink="..">{{id? id.toUpperCase() : '加载中'}}</a>
+        </nz-breadcrumb-item>
+      </nz-breadcrumb>
+      <nz-page-header-title>计划编辑</nz-page-header-title>
       <nz-page-header-extra>
         <nz-space>
-          <button nz-button *nzSpaceItem nzType="default"></button>
-          <button nz-button *nzSpaceItem nzType="default" (click)=" createOrder()">新建订单</button>
-          <button nz-button *nzSpaceItem nzType="primary" [disabled]="!indeterminate && !checked"
-            (click)="bulkTypein()">录入订单</button>
-          <button nz-button *nzSpaceItem nzType="primary" [disabled]="!indeterminate && !checked" (click)="bulkDelete()"
-            nzDanger>删除订单</button>
+          <button nz-button *nzSpaceItem nzType="primary" routerLink="select">新增订单</button>
+          <button nz-button *nzSpaceItem nzType="primary" nzDanger (click)="bulkDelete()" >删除订单</button>
         </nz-space>
       </nz-page-header-extra>
       <nz-page-header-content>
         <div style="display: flex;">
-          <nz-statistic nzTitle="录入中" [nzValue]="editList.length" nzSuffix="个"></nz-statistic>
-          <nz-statistic nzTitle="已录入" [nzValue]="orders.length - editList.length" nzSuffix="个" style="margin: 0 32px">
-          </nz-statistic>
-          <nz-statistic *ngIf="dataService.info.role === 'boss'" nzTitle="录入价格" style=" margin-right: 32px;"
-            [nzValue]="price.toFixed(2)" nzPrefix="¥">
-          </nz-statistic>
-          <nz-statistic *ngIf="dataService.info.role === 'boss'" nzTitle="平均价格" style=" margin-right: 32px;"
-            [nzValue]="orders.length ? (price / orders.length).toFixed(2) : '0.00'" nzPrefix="¥">
-          </nz-statistic>
+          <nz-statistic nzTitle="订单数量" [nzValue]="orders.length" nzSuffix="个"></nz-statistic>
         </div>
       </nz-page-header-content>
     </nz-page-header>
@@ -41,12 +37,10 @@
           <th nzAlign="center" *ngIf="dataService.info.role == 'boss'">价格</th>
           <th nzAlign="center">状态</th>
           <th nzAlign="center">备注</th>
-          <th nzAlign="center">操作</th>
         </tr>
       </thead>
       <tbody>
-        <tr (dblclick)="edit(data)"
-          *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
+        <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
           <td [nzChecked]="data.checked" (nzCheckedChange)="onItemChecked(data, $event)"></td>
           <td nzAlign="center" style="font-family: monospace;">
             <div class="not-editable-cell">
@@ -82,14 +76,6 @@
             <div class="not-editable-cell" [ngStyle]="{'color': data.value['remark'] ? 'black' : 'lightgrey'}">
               {{data.value['remark'] ? data.value['remark'] : '—'}}
             </div>
-          </td>
-          <td nzAlign="center">
-            <a [routerLink]="data.value.id_">编辑</a>
-            <nz-divider nzType="vertical"></nz-divider>
-            <a *ngIf="data.value['state']===0" (click)="typein(data)">录入</a>
-            <a *ngIf="data.value['state']===1" (click)="typeout(data)">恢复</a>
-            <nz-divider nzType="vertical"></nz-divider>
-            <a (click)="delete(data)">删除</a>
           </td>
         </tr>
       </tbody>

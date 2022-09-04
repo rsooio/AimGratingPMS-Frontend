@@ -1,4 +1,4 @@
-<nz-layout style="background-color: white;">
+<!-- <nz-layout style="background-color: white;">
   <nz-header class="header">
     <nz-page-header class="page-header" (nzBack)="onBack()" nzBackIcon>
       <nz-breadcrumb nz-page-header-breadcrumb>
@@ -24,7 +24,6 @@
         </nz-space>
       </nz-page-header-extra>
       <nz-page-header-content>
-        <!-- <div style="display: flex; justify-content: space-between;"> -->
         <div style="display: flex;">
           <nz-statistic nzTitle="产品数" [nzValue]="products.length" nzSuffix="件"></nz-statistic>
           <nz-statistic nzTitle="面积" [nzValue]="productSet['area'] ? productSet['area'] : 0" nzSuffix="㎡"
@@ -33,57 +32,7 @@
           <nz-statistic *ngIf="true" nzTitle="价格" style=" margin-right: 32px;"
             [nzValue]="productSet['price'] ? productSet['price'] : 0" nzPrefix="¥">
           </nz-statistic>
-          <!-- <div style="display: flex; flex-wrap: wrap; width: 50%;">
-            <div style="width: 30%" class="input-cell">
-              <p nz-typography nzEditable>客户：美的黄总</p>
-            </div>
-            <p style="width: 30%;">联系人：</p>
-            <p style="width: 40%;">联系电话：</p>
-            <p style="width: 50%;">地址：</p>
-            <p style="width: 50%;">送货地址：</p>
-            <nz-input-group style="width: 30%;" nzAddOnBefore="客户">
-              <input nz-input>
-            </nz-input-group>
-            <nz-input-group style="width: 30%;" nzAddOnBefore="客户">
-              <input nz-input>
-            </nz-input-group>
-            <nz-input-group style="width: 30%;" nzAddOnBefore="客户">
-              <input nz-input>
-            </nz-input-group>
-          </div> -->
-          <!-- <p>备注：</p> -->
-          <div>
-            <!-- <nz-select style="width: 200px;" nzShowSearch nzPlaceHolder="选择用户" [nzCustomTemplate]="selected_client"
-              nzLoading="false" nzDisabled="false" (ngModelChange)="change($event)" [(ngModel)]="order['client']">
-              <nz-option *ngFor="let data of clients" [nzLabel]="firstLetter(data['_id'])" [nzValue]="data['_id']"
-                nzCustomContent="true">
-                {{data['_id']}}
-              </nz-option>
-            </nz-select> -->
-            <!-- <ng-template #selected_client let-selected>
-              {{ selected.nzValue }}
-            </ng-template> -->
-          </div>
         </div>
-        <!-- <nz-descriptions style="width: 60%;" nzSize="small" [nzColumn]="24">
-            <nz-descriptions-item nzTitle="客户" [nzSpan]="4">
-              <p class="description" nz-typography nzEditable>
-                test
-              </p>
-              <nz-autocomplete [nzDataSource]="['test', 'hello', 'world']" nzBackfill #auto></nz-autocomplete>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="联系人" [nzSpan]="4">张钊洋先生
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="联系方式" [nzSpan]="8"><a>421421</a>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="地址" [nzSpan]="8"><a>421421</a>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="备注" [nzSpan]="16"><a>421421</a>
-            </nz-descriptions-item>
-            <nz-descriptions-item nzTitle="送货地址" [nzSpan]="8"><a>421421</a>
-            </nz-descriptions-item>
-          </nz-descriptions> -->
-        <!-- </div> -->
       </nz-page-header-content>
     </nz-page-header>
   </nz-header>
@@ -104,13 +53,11 @@
           <th nzAlign="center">面积</th>
           <th *ngIf="dataService.info.role == 'boss'" nzAlign="center">价格</th>
           <th nzWidth="10%" nzAlign="center">备注</th>
-          <!-- <th style="width: 120px;">自动计算</th> -->
           <th nzAlign="center">操作</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
-          <!-- pinyin.firstLetter(technologies.cache[key] ? technologies.cache[key] : '') -->
           <td nzAlign="center">
             {{(basicTable.nzPageIndex - 1) * basicTable.nzPageSize + i + 1}}
           </td>
@@ -131,7 +78,6 @@
             <div [ngStyle]="{'color': 'lightgrey' }">
               —
             </div>
-            <!-- 请选择工艺 -->
           </td>
           <td *ngIf="data['technology']" class="editable-unit" nzEllipsis=true nzAlign="center">
             <div class="editable-cell" *ngIf="data['edit'] !== 8" (click)="data['edit'] = 8"
@@ -151,7 +97,6 @@
             <div [ngStyle]="{'color': 'lightgrey'}">
               —
             </div>
-            <!-- {{data['technology'] ? '请选择材质' : '请选择工艺'}} -->
           </td>
           <td *ngIf="data['texture']" class="editable-unit" nzEllipsis=true nzAlign="center">
             <div class="editable-cell" *ngIf="data['edit'] !== 9" (click)="data['edit'] = 9"
@@ -243,4 +188,4 @@
       </tbody>
     </nz-table>
   </nz-content>
-</nz-layout>
+</nz-layout> -->

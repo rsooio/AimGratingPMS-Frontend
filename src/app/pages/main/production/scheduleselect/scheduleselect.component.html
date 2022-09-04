@@ -6,13 +6,17 @@
           <a routerLink="../..">工艺管理</a>
         </nz-breadcrumb-item>
         <nz-breadcrumb-item>
-          <a routerLink=".">{{id? id == 'new' ? '新建计划' : id.toUpperCase() : '加载中'}}</a>
+          <a *ngIf="id === 'new'">新建计划</a>
+          <a *ngIf="id !== 'new'" routerLink="..">{{id? id.toUpperCase() : '加载中'}}</a>
+        </nz-breadcrumb-item>
+        <nz-breadcrumb-item *ngIf="id !== 'new'">
+          <a routerLink=".">添加订单</a>
         </nz-breadcrumb-item>
       </nz-breadcrumb>
-      <nz-page-header-title>订单录入</nz-page-header-title>
+      <nz-page-header-title>选择订单</nz-page-header-title>
       <nz-page-header-extra>
         <nz-space>
-          <button nz-button *nzSpaceItem nzType="primary">确认选择</button>
+          <button nz-button *nzSpaceItem nzType="primary" (click)="select()" [disabled]="!checked && !indeterminate">确认选择</button>
         </nz-space>
       </nz-page-header-extra>
       <nz-page-header-content>
@@ -68,7 +72,7 @@
           </td>
           <td nzAlign="center">
             <div class="not-editable-cell">
-              {{dataService.ORDER_STATE[data.value['state']]}}
+              {{orderService.STATE[data.value['state']]}}
             </div>
           </td>
           <td [nzAlign]="data.value['remark'] ? 'left' : 'center'">

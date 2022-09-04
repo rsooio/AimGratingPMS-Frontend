@@ -19,15 +19,16 @@ export class MainComponent implements OnInit {
 
   isCollapsed = false;
   openMap: { [name: string]: boolean | undefined } = {
-    sub1: false,
-    sub2: false,
-    sub3: false,
-    sub4: false,
-    sub5: false,
-    sub6: false
+    sub1: true,
+    sub2: true,
+    sub3: true,
+    sub4: true,
+    sub5: true,
+    sub6: true
   };
 
   openHandler(value: string): void {
+    return;
     for (const key in this.openMap) {
       if (key !== value) {
         this.openMap[key] = false;

@@ -7,7 +7,7 @@ import { Injectable, isDevMode, OnInit } from '@angular/core';
 import PouchDB from 'pouchdb-browser';
 import PouchAuth from 'pouchdb-authentication'
 import PouchFind from 'pouchdb-find'
-import { of, Observable, Subscriber, Subject } from 'rxjs';
+import { of, Observable, Subscriber, Subject, timer } from 'rxjs';
 import { temporaryAllocator } from '@angular/compiler/src/render3/view/util';
 import { chdir } from 'process';
 PouchDB.plugin(PouchAuth)
@@ -69,6 +69,7 @@ export class DbService {
   Connection: PouchDB.Replication.Sync<Doc> | null = null;
   Changes: PouchDB.Core.Changes<Doc> | null = null;
   Stream: Subject<GetDoc> = new Subject<GetDoc>();
+  connection = false
 
   constructor(
     private dataService: DataService,
@@ -76,6 +77,12 @@ export class DbService {
   ) {
     this.enterprise.Local = new PouchDB<Doc>('enterprise');
     this.enterprise.Remote = new PouchDB<Doc>(SYNC_ENDPOINT + 'enterprise');
+    timer(0, 300000).subscribe(() => {
+      if (this.connection) {
+        console.log('refresh session');
+        this.Remote?.getSession().then(m => console.log(m)).catch(e => console.log(e));
+      }
+    })
     this.enterprise.Socket = this.enterprise.Local.sync(this.enterprise.Remote, {
       live: true,
       retry: true,
@@ -102,6 +109,7 @@ export class DbService {
   }
 
   async connect(enterprise: string, workshop: string, role: string) {
+    this.connection = true;
     if (this.Connection) this.Connection.cancel()
     this.Local = new PouchDB<Doc>(enterprise);
     this.Remote = new PouchDB<Doc>(SYNC_ENDPOINT + enterprise);
@@ -109,6 +117,7 @@ export class DbService {
       live: true,
       retry: true,
     }, workshop, role))
+      .on('error', (m: any) => this.connection = m['status'] !== 401)
     this.Changes = this.Local.changes({ live: true, since: 'now' })
     console.log(enterprise, 'connected.')
     this.Changes
@@ -151,6 +160,18 @@ export class DbService {
   async get(type: string, docId: string, options?: PouchDB.Core.GetOptions) {
     if (!this.Local) throw new Error('database not establish');
     return this.Local.get(type + '/' + docId, options || {})
+  }
+
+  async change(type: string, docId: string, convert: (m: GetDoc) => void) {
+    this.get(type, docId)
+      .then(m => {
+        convert(m);
+        this.put(type, m)
+      })
+  }
+
+  async buldChange(type: string, docIds: string[], convert: (m: GetDoc) => void) {
+    docIds.forEach(id => this.change(type, id, convert));
   }
 
   find(type: string, request?: PouchDB.Find.FindRequest<Doc>) {

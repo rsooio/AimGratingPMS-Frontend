@@ -22,7 +22,7 @@ export class AllorderComponent implements OnInit {
   loading = true;
 
   constructor(
-    private orderService: OrderService,
+    public orderService: OrderService,
     private randomService: RandomService,
     public utilsService: UtilsService,
     public dataService: DataService,

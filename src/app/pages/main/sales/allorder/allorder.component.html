@@ -60,7 +60,7 @@
           </td>
           <td nzAlign="center" nzEllipsis>
             <div class="not-editable-cell">
-              {{dataService.ORDER_STATE[data.value['state']]}}
+              {{orderService.STATE[data.value['state']]}}
             </div>
           </td>
           <td [nzAlign]="data.value['remark'] ? 'left' : 'center'" nzEllipsis>
@@ -69,7 +69,7 @@
             </div>
           </td>
           <td nzAlign="center" nzEllipsis>
-            <a [routerLink]="data.value.id_">编辑</a>
+            <button nz-button nzType="link" nzSize="small" [disabled]="data.value['state'] >= 2" [routerLink]="data.value.id_">编辑</button>
           </td>
         </tr>
       </tbody>

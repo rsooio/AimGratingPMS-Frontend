@@ -12,7 +12,18 @@ export class OrderService {
   type = 'order';
   Stream: Subject<GetDoc> = new Subject<GetDoc>();
   private _docs: { [x: string]: GetDoc } = {}
-  private _initSubscription: Subscription;
+
+  STATE: { [key: number]: string } = {
+    99: '已取消',
+    0: '录入中',
+    1: '待排期',
+    2: '待生产',
+    3: '生产中',
+    4: '已生产',
+    5: '已入库',
+    6: '已出库',
+    7: '已结清',
+  }
 
   constructor(
     private dbService: DbService,
@@ -28,15 +39,11 @@ export class OrderService {
           this.Stream.complete()
         }
       })
-    this._initSubscription = this.dbService.find(this.type)
+    this.dbService.find(this.type)
       .subscribe({
         next: m => this.add(m),
         error: e => this.Stream.error(e),
       })
-  }
-
-  get isInit() {
-    return this._initSubscription.closed;
   }
 
   async add(data: GetDoc) {
@@ -59,12 +66,15 @@ export class OrderService {
   async change(id: string, convert: (m: GetDoc) => void) {
     let doc = this.doc(id)
     if (!doc) {
-      this.get(id).then(m => doc = m);
+      this.dbService.change(this.type, id, convert);
     }
+    convert(doc);
+    this.put(doc)
+      .catch(() => this.dbService.change(this.type, id, convert));
   }
 
-  async bulkChange(ids: string[], convert: (m: GetDoc) => Doc) {
-    
+  async bulkChange(ids: string[], convert: (m: GetDoc) => void) {
+    ids.forEach(id => this.change(id, convert));
   }
 
   doc(id: string) {
@@ -79,7 +89,7 @@ export class OrderService {
     if (area || price) {
       const quentity = data['quentity'] ? data['quentity'] : 1
       if (area) {
-        data['area'] = MathService.round((data['length'] + 5) * (data['width'] + 5) * quentity / 10000, 2);
+        data['area'] = MathService.round((data['length'] + 5) * (data['width'] + 5)/ 10000, 2) * quentity;
       }
       if (price) {
         data['price'] = MathService.round(data['area'] * data['unit_price'], 2);
@@ -87,27 +97,30 @@ export class OrderService {
     }
   }
 
-  calcProductSet(data: { [x: string]: any }, price?: boolean, area = true) {
-    if (area) {
-      data['area'] = MathService.round(data['products']
-        .reduce((prev: number, curr: { [x: string]: any; }) =>
-          curr['area'] ? prev + curr['area'] : prev, 0), 2);
-    }
-    if (price) {
-      data['price'] = MathService.round(data['products']
-        .reduce((prev: number, curr: { [x: string]: any; }) =>
-          curr['price'] ? prev + curr['price'] : prev, 0), 2);
-    }
-  }
-
   calcOrder(data: { [x: string]: any }, price?: boolean, area = true) {
     if (area) {
-      data['area'] = MathService.round(Object.values<{ [x: string]: any }>(data['product_set'])
+      data['area'] = MathService.round(Object.values<{ [x: string]: any }>(data['products'])
         .reduce((prev, curr) => curr['area'] ? prev + curr['area'] : prev, 0), 2);
     }
     if (price) {
-      data['price'] = MathService.round(Object.values<{ [x: string]: any }>(data['product_set'])
+      data['price'] = MathService.round(Object.values<{ [x: string]: any }>(data['products'])
         .reduce((prev, curr) => curr['price'] ? prev + curr['price'] : prev, 0), 2);
     }
+  }
+
+  ordersPrice(orders: string[]) {
+    return orders.reduce((price, id) => {
+      const doc = this.doc(id);
+      if (!doc || !doc['price']) return price;
+      return price + doc['price'];
+    }, 0)
+  }
+
+  ordersArea(orders: string[]) {
+    return orders.reduce((area, id) => {
+      const doc = this.doc(id);
+      if (!doc || !doc['area']) return area;
+      return area + doc['area'];
+    }, 0)
   }
 }

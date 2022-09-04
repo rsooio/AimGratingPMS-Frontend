@@ -45,7 +45,7 @@ export class OrdertypeinComponent implements OnInit {
 
   constructor(
     private db: DbService,
-    private orderService: OrderService,
+    public orderService: OrderService,
     private random: RandomService,
     public dataService: DataService,
     public utilsService: UtilsService,
@@ -53,29 +53,25 @@ export class OrdertypeinComponent implements OnInit {
     public clientService: ClientService,
     public router: Router,
     public route: ActivatedRoute,
-  ) {
-    (window as any).debug = this;
-  }
+  ) { }
 
   ngOnInit(): void {
     setTimeout(() => {
       this.orderService.Stream
-        .pipe(filter(m => m._deleted || this.filter(m)))
+        .pipe(filter(m => m._deleted || m['state'] == 2 || this.filter(m)))
         .subscribe(m => {
-          if (m._deleted) {
+          if (m._deleted || m['state'] == 2) {
             this.orders.splice(this.orders.findIndex(v => v.value._id == m._id), 1);
           } else {
             const index = this.orders.findIndex(order => order.value._id == m._id)
             if (index != -1) {
               this.orders[index].value = m;
             } else {
-              if (!this.orderService.isInit) {
-                const indexInsert = this.orders.findIndex(order => order.value['create_time'] <= m['create_time']);
-                if (indexInsert != -1) {
-                  this.orders.splice(indexInsert, 0, { checked: false, value: m });
-                }
+              const index = this.orders.findIndex(order => order.value['create_time'] <= m['create_time']);
+              if (index != -1) {
+                this.orders.splice(index, 0, { checked: false, value: m });
               } else {
-                this.orders.push({ checked: false, value: m });
+                this.orders.push({checked: false, value: m});
               }
             }
           }
@@ -105,12 +101,6 @@ export class OrdertypeinComponent implements OnInit {
     if (v['state'] === 1 && v['typein_time']) {
       const dateStamp = new Date(new Date().toLocaleDateString()).getTime() + 18000000;
       return v['typein_time'] >= dateStamp;
-    }
-    if (v['state'] === 2) {
-      const index = this.orders.findIndex(m => m.value._id === v._id);
-      if (index != -1) {
-        this.orders.splice(index, 1);
-      }
     }
     return false;
   }
@@ -183,7 +173,7 @@ export class OrdertypeinComponent implements OnInit {
                 id_: id,
                 create_time: new Date().getTime(),
                 state: 0,
-                product_set: {}
+                products: {}
               })
             // .catch(() => this.createOrder())
           })

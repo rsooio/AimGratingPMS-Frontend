@@ -10,10 +10,10 @@ import { RouterModule, Routes } from '@angular/router';
 const routes: Routes = [
   { path: 'orders', component: AllorderComponent, data: { keep: true } },
   { path: 'orders/:id', component: OrdereditorComponent, data: { keep: true } },
-  { path: 'orders/:id/:setid', component: ProducteditorComponent, data: { keep: true } },
+  // { path: 'orders/:id/:setid', component: ProducteditorComponent, data: { keep: true } },
   { path: 'typein', component: OrdertypeinComponent, data: { keep: true } },
   { path: 'typein/:id', component: OrdereditorComponent, data: { keep: true } },
-  { path: 'typein/:id/:setid', component: ProducteditorComponent, data: { keep: true } },
+  // { path: 'typein/:id/:setid', component: ProducteditorComponent, data: { keep: true } },
   { path: 'clients', component: ClientComponent, data: { keep: true } },
   { path: 'clients/:client', component: ClientpriceComponent, data: { keep: true } },
 ];

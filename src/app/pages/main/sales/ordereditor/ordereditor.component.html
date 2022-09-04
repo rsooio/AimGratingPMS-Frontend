@@ -6,7 +6,7 @@
           <a routerLink="..">全部订单</a>
         </nz-breadcrumb-item>
         <nz-breadcrumb-item>
-          <a routerLink=".">{{id.toUpperCase()}}</a>
+          <a routerLink=".">{{id?.toUpperCase()}}</a>
         </nz-breadcrumb-item>
       </nz-breadcrumb>
       <nz-page-header-title>订单编辑</nz-page-header-title>
@@ -16,15 +16,14 @@
       <nz-page-header-extra>
         <nz-space>
           <button *nzSpaceItem nz-button>元数据编辑</button>
-          <button *nzSpaceItem nz-button nzType="primary" [disabled]="createProductSetButtonDisabled"
-            (click)="createProductSet()">新建产品集</button>
-          <button *nzSpaceItem nz-button nzType="primary" nzDanger>删除产品集</button>
+          <button *nzSpaceItem nz-button nzType="primary" (click)="createProduct()">新建产品</button>
+          <button *nzSpaceItem nz-button nzType="primary" nzDanger>删除产品</button>
         </nz-space>
       </nz-page-header-extra>
       <nz-page-header-content>
         <!-- <div style="display: flex; justify-content: space-between;"> -->
         <div style="display: flex;">
-          <nz-statistic nzTitle="状态" [nzValue]="order ? dataService.ORDER_STATE[order['state']] : '加载中'"></nz-statistic>
+          <nz-statistic nzTitle="状态" [nzValue]="order ? orderService.STATE[order['state']] : '加载中'"></nz-statistic>
           <nz-statistic nzTitle="面积" [nzValue]="order && order['area'] ? order['area'] : 0" nzSuffix="㎡"
             style="margin: 0 32px">
           </nz-statistic>
@@ -47,7 +46,7 @@
                     {{'客户：' + (order['client'] ? clientService.cache[order['client']] : '—')}}
                   </div>
                   <nz-select style="display: block; width: 100%;" nzSize="small" *ngIf="order['edit'] === 1"
-                    nzShowSearch nzPlaceHolder="选择用户" (ngModelChange)="select(order, 'client', $event)"
+                    nzShowSearch nzPlaceHolder="选择用户" (ngModelChange)="orderSelect(order, 'client', $event)"
                     [(ngModel)]="order['client']" (nzBlur)="clearFocus(order)" [nzOptions]="clientService.options"
                     [nzFilterOption]="pinyin.SearchByPinyin" [nzOpen]="order['edit'] === 1"
                     [cdkTrapFocusAutoCapture]="order['edit'] === 1" [cdkTrapFocus]="order['edit'] === 1">
@@ -58,7 +57,7 @@
                     [ngStyle]="{'color': order['linkman'] ? 'black' : 'lightgrey'}">
                     {{'联系人：' + (order['linkman'] ? order['linkman'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 2" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 2" (blur)="orderUpdate(order)"
                     [(ngModel)]="order['linkman']" [cdkTrapFocusAutoCapture]="order['edit'] === 2"
                     [cdkTrapFocus]="order['edit'] === 2" (ngModelChange)="order['change'] = true" />
                 </td>
@@ -67,7 +66,7 @@
                     [ngStyle]="{'color': order['link'] ? 'black' : 'lightgrey'}">
                     {{'联系方式：' + (order['link'] ? order['link'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 3" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 3" (blur)="orderUpdate(order)"
                     [(ngModel)]="order['link']" [cdkTrapFocusAutoCapture]="order['edit'] === 3"
                     [cdkTrapFocus]="order['edit'] === 3" (ngModelChange)="order['change'] = true" />
                 </td>
@@ -79,7 +78,7 @@
                   <nz-date-picker *ngIf="order['edit'] === 4" nzSize='small' (blur)="clearFocus(order)"
                     nzOpen="order['edit'] === 4" [(ngModel)]="order['date']"
                     [cdkTrapFocusAutoCapture]="order['edit'] === 3" [cdkTrapFocus]="order['edit'] === 3"
-                    (ngModelChange)="select(order, 'date', $event)"></nz-date-picker>
+                    (ngModelChange)="orderSelect(order, 'date', $event)"></nz-date-picker>
                 </td>
               </tr>
               <tr>
@@ -88,7 +87,7 @@
                     [ngStyle]="{'color': order['code'] ? 'black' : 'lightgrey'}">
                     {{'客编：' + (order['code'] ? order['code'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 5" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 5" (blur)="orderUpdate(order)"
                     [(ngModel)]="order['code']" [cdkTrapFocusAutoCapture]="order['edit'] === 5"
                     [cdkTrapFocus]="order['edit'] === 5" (ngModelChange)="order['change'] = true" />
                 </td>
@@ -97,7 +96,7 @@
                     [ngStyle]="{'color': order['address'] ? 'black' : 'lightgrey'}">
                     {{'地址：' + (order['address'] ? order['address'] : '—')}}
                   </div>
-                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 6" (blur)="update(order)"
+                  <input nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 6" (blur)="orderUpdate(order)"
                     [(ngModel)]="order['address']" [cdkTrapFocusAutoCapture]="order['edit'] === 6"
                     [cdkTrapFocus]="order['edit'] === 6" (ngModelChange)="order['change'] = true" />
                 </td>
@@ -107,8 +106,9 @@
                     {{'备注：' + (order['remark'] ? order['remark'] : '—')}}
                   </div>
                   <input nzSize="small" nzSize="small" nz-input type="text" [hidden]="order['edit'] !== 7"
-                    (blur)="update(order)" [(ngModel)]="order['remark']" [cdkTrapFocusAutoCapture]="order['edit'] === 7"
-                    [cdkTrapFocus]="order['edit'] === 7" (ngModelChange)="order['change'] = true" />
+                    (blur)="orderUpdate(order)" [(ngModel)]="order['remark']"
+                    [cdkTrapFocusAutoCapture]="order['edit'] === 7" [cdkTrapFocus]="order['edit'] === 7"
+                    (ngModelChange)="order['change'] = true" />
                 </td>
               </tr>
             </tbody>
@@ -118,63 +118,167 @@
     </nz-page-header>
   </nz-header>
   <nz-content>
-    <nz-table #basicTable [nzData]="productSets" nzTableLayout="fixed" [nzPageSize]="dataService.getPageSize(440, 44)"
-      [nzLoading]="!order">
+    <nz-table #basicTable [nzData]="products" nzTableLayout="fixed" [nzLoading]="!order"
+      [nzPageSize]="dataService.getPageSize(430, 44)">
       <thead>
         <tr>
           <th nzWidth="30px"></th>
-          <th nzAlign="center" nzWidth="10%">编码</th>
-          <th nzAlign="center" nzWidth="10%">面积</th>
-          <th nzAlign="center" nzWidth="10%" *ngIf="dataService.info.role == 'boss'">价格</th>
-          <th nzAlign="center">描述</th>
-          <th nzAlign="center">备注</th>
+          <th nzWidth="60px" nzAlign="center">编号</th>
+          <th nzWidth="8%" nzAlign="center">工艺</th>
+          <th nzWidth="8%" nzAlign="center">材质</th>
+          <th nzWidth="8%" nzAlign="center">颜色</th>
+          <th nzWidth="8%" nzAlign="center">类型</th>
+          <th nzWidth="8%" nzAlign="center">数量</th>
+          <th nzWidth="8%" nzAlign="center">长度</th>
+          <th nzWidth="8%" nzAlign="center">宽度</th>
+          <th *ngIf="dataService.info.role == 'boss'" nzAlign="center">单价</th>
+          <th nzAlign="center">面积</th>
+          <th *ngIf="dataService.info.role == 'boss'" nzAlign="center">价格</th>
+          <th nzWidth="10%" nzAlign="center">备注</th>
+          <!-- <th style="width: 120px;">自动计算</th> -->
           <th nzAlign="center">操作</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let data of basicTable.data; trackBy: utilsService.trackByIndex; index as i">
-          <td nzAlign="center" nzEllipsis>
+          <!-- pinyin.firstLetter(technologies.cache[key] ? technologies.cache[key] : '') -->
+          <td nzAlign="center">
             {{(basicTable.nzPageIndex - 1) * basicTable.nzPageSize + i + 1}}
           </td>
-          <td nzAlign="center" nzEllipsis>
-            <div class="not-editable-cell" style="font-family:monospace;">
-              {{(id + '-' + data.key).toUpperCase()}}
-            </div>
+          <td nzAlign="center" style="font-family: monospace;">
+            {{data.key.toUpperCase()}}
           </td>
-          <td nzAlign="center" nzEllipsis>
-            <div [ngStyle]="{'color': data.value['area'] ? 'black' : 'lightgray'}">
-              {{data.value['area'] ? data.value['area'] + ' ㎡' : '—'}}
+          <td class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 1" (click)="data.value['edit'] = 1"
+              [ngStyle]="{'color': data.value['technology'] ? 'black' : 'lightgrey'}">
+              {{technologyService.cache[data.value['technology']] ? technologyService.cache[data.value['technology']] :
+              '请选择'}}
             </div>
+            <nz-select style="position: relative; width: 100%" *ngIf="data.value['edit'] === 1" nzShowSearch
+              nzPlaceHolder="选择工艺" [(ngModel)]="data.value['technology']"
+              (ngModelChange)="selectClear(data, ['texture', 'color']);productSelect(data.value)"
+              [nzOpen]="data.value['edit'] === 1" (nzBlur)="clearFocus(data.value)"
+              [nzFilterOption]="pinyin.SearchByPinyin"
+              [nzOptions]="technologyService.options['technology'] ? technologyService.options['technology'] : []"
+              [cdkTrapFocusAutoCapture]="data.value['edit'] === 1" [cdkTrapFocus]="data.value['edit'] === 1">
+            </nz-select>
           </td>
-          <td *ngIf="dataService.info.role == 'boss'" nzAlign="center" nzEllipsis>
-            <div [ngStyle]="{'color': data.value['price'] ? 'black' : 'lightgray'}">
-              {{data.value['price'] ? '¥ ' + data.value['price'] : '—'}}
+          <td *ngIf="!data.value['technology']" nzAlign="center">
+            <div [ngStyle]="{'color': 'lightgrey' }">
+              —
             </div>
+            <!-- 请选择工艺 -->
           </td>
-          <td nzAlign="left" nzEllipsis class="editable-unit">
-            <div class="editable-cell" *ngIf="data.value['edit'] !== 7" (click)="data.value['edit'] = 7"
-              [ngStyle]="{'color': data.value['describe'] ? 'black' : 'lightgrey'}">
-              {{data.value['describe'] ? data.value['describe'] : '&nbsp;'}}
-            </div>
-            <textarea class="table-textarea" nz-input type="text" *ngIf="data.value['edit'] === 7"
-              (blur)="update(data.value)" [(ngModel)]="data.value['describe']"
-              [cdkTrapFocusAutoCapture]="data.value['edit'] === 7" [cdkTrapFocus]="data.value['edit'] === 7"
-              (ngModelChange)="data.value['change'] = true"></textarea>
-          </td>
-          <td nzAlign="left" nzEllipsis class="editable-unit">
+          <td *ngIf="data.value['technology']" class="editable-unit" nzEllipsis=true nzAlign="center">
             <div class="editable-cell" *ngIf="data.value['edit'] !== 8" (click)="data.value['edit'] = 8"
+              [ngStyle]="{'color': data.value['texture'] ? 'black' : 'lightgrey'}">
+              {{technologyService.cache[data.value['technology'] + data.value['texture']] ?
+              technologyService.cache[data.value['technology'] +
+              data.value['texture']] : '—'}}
+            </div>
+            <nz-select style="position: relative; width: 100%" *ngIf="data.value['edit'] === 8" nzShowSearch
+              nzPlaceHolder="选择材质" [(ngModel)]="data.value['texture']"
+              (ngModelChange)="selectClear(data, ['color']);productSelect(data.value)"
+              [nzOpen]="data.value['edit'] === 8" (nzBlur)="clearFocus(data.value)"
+              [nzFilterOption]="pinyin.SearchByPinyin"
+              [nzOptions]="technologyService.options[data.value['technology']] ? technologyService.options[data.value['technology']] : []"
+              [cdkTrapFocusAutoCapture]="data.value['edit'] === 8" [cdkTrapFocus]="data.value['edit'] === 8">
+            </nz-select>
+          </td>
+          <td *ngIf="!data.value['texture']" nzAlign="center">
+            <div [ngStyle]="{'color': 'lightgrey'}">
+              —
+            </div>
+            <!-- {{data.value['technology'] ? '请选择材质' : '请选择工艺'}} -->
+          </td>
+          <td *ngIf="data.value['texture']" class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 9" (click)="data.value['edit'] = 9"
+              [ngStyle]="{'color': data.value['color'] ? 'black' : 'lightgrey'}">
+              {{technologyService.cache[data.value['technology'] + data.value['texture'] + data.value['color']] ?
+              technologyService.cache[data.value['technology'] + data.value['texture'] + data.value['color']] : '请选择'}}
+            </div>
+            <nz-select style="position: relative; width: 100%" *ngIf="data.value['edit'] === 9" nzShowSearch
+              nzPlaceHolder="选择颜色" [(ngModel)]="data.value['color']" (ngModelChange)="productSelect(data.value)"
+              [nzOpen]="data.value['edit'] === 9" (nzBlur)="clearFocus(data.value)"
+              [nzFilterOption]="pinyin.SearchByPinyin"
+              [nzOptions]="technologyService.options[data.value['technology'] + data.value['texture']] ? technologyService.options[data.value['technology'] + data.value['texture']] : []"
+              [cdkTrapFocusAutoCapture]="data.value['edit'] === 9" [cdkTrapFocus]="data.value['edit'] === 9">
+            </nz-select>
+          </td>
+          <td class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 10" (click)="data.value['edit'] = 10"
+              [ngStyle]="{'color': data.value['type'] ? 'black' : 'lightgrey'}">
+              {{data.value['type'] ? data.value['type'] : '请选择'}}
+            </div>
+            <nz-select style="position: relative; width: 100%" *ngIf="data.value['edit'] === 10" nzShowSearch
+              nzPlaceHolder="选择类型" [(ngModel)]="data.value['type']" [nzOptions]="dataService.AirGratingOptions"
+              (ngModelChange)="productSelect(data.value)" [nzOpen]="data.value['edit'] === 10"
+              (nzBlur)="clearFocus(data.value)" [cdkTrapFocusAutoCapture]="data.value['edit'] === 10"
+              [cdkTrapFocus]="data.value['edit'] === 10">
+            </nz-select>
+          </td>
+          <td class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 11" (click)="data.value['edit'] = 11"
+              [ngStyle]="{'color': data.value['quentity'] ? 'black' : 'lightgrey'}">
+              {{data.value['quentity'] ? data.value['quentity'] : 1}}
+            </div>
+            <input nz-input type="number" *ngIf="data.value['edit'] === 11" (blur)="productChange(data)"
+              [(ngModel)]="data.value['quentity']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 11"
+              [cdkTrapFocus]="data.value['edit'] === 11" (ngModelChange)="data.value['change'] = true" />
+          </td>
+          <td class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 2" (click)="data.value['edit'] = 2"
+              [ngStyle]="{'color': data.value['length'] ? 'black' : 'lightgrey'}">
+              {{data.value['length'] ? data.value['length'] + ' cm' : '请输入'}}
+            </div>
+            <input nz-input type="number" *ngIf="data.value['edit'] === 2" (blur)="productChange(data)"
+              [(ngModel)]="data.value['length']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 2"
+              [cdkTrapFocus]="data.value['edit'] === 2" (ngModelChange)="data.value['change'] = true" />
+          </td>
+          <td class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 3" (click)="data.value['edit'] = 3"
+              [ngStyle]="{'color': data.value['width'] ? 'black' : 'lightgrey'}">
+              {{data.value['width'] ? data.value['width'] + ' cm' : '请输入'}}
+            </div>
+            <input nz-input type="number" *ngIf="data.value['edit'] === 3" (blur)="productChange(data)"
+              [(ngModel)]="data.value['width']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 3"
+              [cdkTrapFocus]="data.value['edit'] === 3" (ngModelChange)="data.value['change'] = true" />
+          </td>
+          <td class="editable-unit" *ngIf="dataService.info.role == 'boss'" nzEllipsis=true nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 4" (click)="data.value['edit'] = 4"
+              [ngStyle]="{'color': data.value['unit_price'] ? 'black' : 'lightgrey'}">
+              {{data.value['unit_price'] ? '¥ ' + data.value['unit_price'] + '/㎡' : '—'}}
+            </div>
+            <input nz-input type="number" *ngIf="data.value['edit'] === 4" (blur)="productChange(data)"
+              [(ngModel)]="data.value['unit_price']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 4"
+              [cdkTrapFocus]="data.value['edit'] === 4" (ngModelChange)="data.value['change'] = true" />
+          </td>
+          <td class="editable-unit" nzEllipsis=true nzAlign="center">
+            <div [ngStyle]="{'color': data.value['area'] ? 'black' : 'lightgrey'}">
+              {{data.value['area'] ? data.value['area'].toFixed(2) + ' ㎡' : '—'}}
+            </div>
+          </td>
+          <td class="editable-unit" *ngIf="dataService.info.role == 'boss'" nzEllipsis nzAlign="center">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 6" (click)="data.value['edit'] = 6"
+              [ngStyle]="{'color': data.value['price'] ? 'black' : 'lightgrey'}">
+              {{data.value['price'] ? '¥ ' + data.value['price'].toFixed(2) : '—'}}
+            </div>
+            <input nz-input type="number" *ngIf="data.value['edit'] === 6" (blur)="productChange(data, false)"
+              [(ngModel)]="data.value['price']" [cdkTrapFocusAutoCapture]="data.value['edit'] === 6"
+              [cdkTrapFocus]="data.value['edit'] === 6" (ngModelChange)="data.value['change'] = true" />
+          </td>
+          <td class="editable-unit" nzEllipsis="true">
+            <div class="editable-cell" *ngIf="data.value['edit'] !== 7" (click)="data.value['edit'] = 7"
               [ngStyle]="{'color': data.value['remark'] ? 'black' : 'lightgrey'}">
               {{data.value['remark'] ? data.value['remark'] : '&nbsp;'}}
             </div>
-            <textarea class="table-textarea" nz-input type="text" *ngIf="data.value['edit'] === 8"
-              (blur)="update(data.value)" [(ngModel)]="data.value['remark']"
-              [cdkTrapFocusAutoCapture]="data.value['edit'] === 8" [cdkTrapFocus]="data.value['edit'] === 8"
+            <textarea class="table-textarea" nz-input type="text" *ngIf="data.value['edit'] === 7"
+              (blur)="productChange(data)" [(ngModel)]="data.value['remark']"
+              [cdkTrapFocusAutoCapture]="data.value['edit'] === 7" [cdkTrapFocus]="data.value['edit'] === 7"
               (ngModelChange)="data.value['change'] = true"></textarea>
           </td>
-          <td nzAlign="center" nzEllipsis>
-            <a [routerLink]="data.key">编辑</a>
-            <nz-divider nzType="vertical"></nz-divider>
-            <a (click)="delete(data.key)">删除</a>
+          <td nzAlign="center">
+            <a (click)="productDelete(data)">删除</a>
           </td>
         </tr>
       </tbody>

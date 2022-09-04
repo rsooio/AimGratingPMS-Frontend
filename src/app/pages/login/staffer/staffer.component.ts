@@ -42,32 +42,34 @@ export class StafferComponent implements OnInit {
     if (!this.username || !this.password) return
     this.disable = true
 
-    await this.db.enterprise.Remote
-      ?.logIn(this.dataService.info.enterprise + '-' + this.username, this.password)
-      .catch(e => console.log(e))
-      .then(async m => {
-        if (!m) {
+    this.db.enterprise.Local
+      ?.get(this.dataService.info.enterprise!)
+      .then(db => {
+        if (!db['staffers'] || !db['staffers'][this.username!] || !db['staffers'][this.username!]['name']) {
           this.failed();
           return;
         }
-        await new PouchDB<{ [key in string]: any }>(this.dataService.info.enterpriseCode!)
-          .get('staffer/' + this.username!)
-          .then(m => this.success(m))
-          .catch(async e => {
-            await new PouchDB<{ [key in string]: any }>(SYNC_ENDPOINT + this.dataService.info.enterpriseCode!)
-              .get('staffer/' + this.username!)
-              .catch(e => console.log(e))
-              .then(m => {
-                if (m) this.success(m)
-                else console.log('e')
-              })
+        this.db.enterprise.Remote
+          ?.logIn(db['staffers'][this.username!]['name'], this.password!)
+          .catch(e => {
+            console.log(e);
+            this.failed();
+          })
+          .then(m => {
+            console.log(m)
+            if (!m) {
+              this.failed();
+              return;
+            }
+            this.success(db['staffers'][this.username!]);
           })
       })
-    this.disable = false
+      .catch(e => this.failed())
   }
 
-  async success(m: { [x: string]: any; } & PouchDB.Core.IdMeta & PouchDB.Core.GetMeta) {
-    if (m['workshop'] && m['role']) {
+  async success(m: { [x: string]: any; }) {
+    this.disable = false;
+    if (m['workshop'] !== null && m['role'] !== null) {
       sessionStorage.setItem('workshop', m['workshop'])
       sessionStorage.setItem('role', m['role'])
       this.dataService.refreshInfo();
@@ -77,10 +79,12 @@ export class StafferComponent implements OnInit {
   }
 
   failed() {
+    this.disable = false;
 
   }
 
   error() {
+    this.disable = false;
 
   }
 }

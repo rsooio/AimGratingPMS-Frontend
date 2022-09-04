@@ -21,6 +21,7 @@ import { TextureComponent } from './texture/texture.component';
 import { ColorComponent } from './color/color.component';
 import { ScheduleComponent } from './schedule/schedule.component';
 import { ScheduleselectComponent } from './scheduleselect/scheduleselect.component';
+import { ScheduleeditorComponent } from './scheduleeditor/scheduleeditor.component';
 
 
 @NgModule({
@@ -29,7 +30,8 @@ import { ScheduleselectComponent } from './scheduleselect/scheduleselect.compone
     TextureComponent,
     ColorComponent,
     ScheduleComponent,
-    ScheduleselectComponent
+    ScheduleselectComponent,
+    ScheduleeditorComponent
   ],
   imports: [
     CommonModule,

@@ -28,42 +28,46 @@ export class ScheduleselectComponent implements OnInit {
 
   constructor(
     private scheduleService: ScheduleService,
-    private orderService: OrderService,
+    public orderService: OrderService,
     private randomService: RandomService,
     public dataService: DataService,
     public utilsService: UtilsService,
     public clientService: ClientService,
     public router: Router,
     public route: ActivatedRoute
-  ) {
-    (window as any).debug = this;
-  }
+  ) { }
 
   ngOnInit(): void {
-    this.route.params.subscribe(m => (this.id = m['id']));
+    this.route.params.subscribe(m => {
+      console.log('id change')
+      this.id = m['id'];
+    });
     setTimeout(() => {
-      this.orderService.Stream.pipe(filter(m => m['state'] == 1 || m['staate'] == 2)).subscribe(m => {
-        let index = this.orders.findIndex(n => n.value._id === m._id);
-        if (m._deleted || m['state'] == 2) {
-          if (index != -1) {
-            this.orders.splice(index, 1);
-          }
-        } else {
-          if (index != -1) {
-            this.orders[index].value = m;
-          } else {
-            index = this.orders.findIndex(n => n.value['create_time'] < m['create_time']);
+      this.orderService.Stream
+        .pipe(filter(m => m['state'] == 1 || m['state'] == 2))
+        .subscribe(m => {
+          const index = this.orders.findIndex(n => n.value._id === m._id);
+          if (m._deleted || m['state'] == 2) {
             if (index != -1) {
-              this.orders.splice(index, 0, { checked: false, value: m });
+              this.orders.splice(index, 1);
+            }
+          } else {
+            if (index != -1) {
+              this.orders[index].value = m;
             } else {
-              this.orders.push({ checked: false, value: m });
+              const index = this.orders.findIndex(n => n.value['create_time'] < m['create_time']);
+              if (index != -1) {
+                this.orders.splice(index, 0, { checked: false, value: m });
+              } else {
+                this.orders.push({ checked: false, value: m });
+              }
             }
           }
-        }
-        this.orders = this.orders.slice();
-      });
+          this.orders = this.orders.slice();
+          this.refreshCheckedStatus();
+        });
       this.orderService.docs
-        .filter(m => m['state'] == 1)
+        .filter(m => m['state'] == 1 && !m['schedule'])
         .sort((a, b) => b['create_time'] - a['create_time'])
         .forEach(m =>
           this.orders.push({
@@ -100,25 +104,48 @@ export class ScheduleselectComponent implements OnInit {
   }
 
   select() {
-    if (this.id == 'new') this.selectNew();
-    else this.selectById();
+    let orders: string[] = [];
+    this.checkedOrder.forEach(m => orders.push(m.value.id_));
+    if (this.id == 'new') this.selectNew(orders);
+    else this.selectById(orders);
   }
 
-  selectNew() {
-    const orders: string[] = this.checkedOrder.reduce((list, curr) => list.splice(-1, 0, curr.value.id_), [] as string[]);
+  selectNew(orders: string[]) {
     this.randomService.string(4).then(id => {
       this.scheduleService
         .get(id)
-        .then(() => this.selectNew())
+        .then(() => this.selectNew(orders))
         .catch(() => {
-          this.scheduleService.put({
-            id_: id,
-            orders: orders,
-            create_time: new Date().getTime()
-          }).then()
+          this.scheduleService
+            .put({
+              id_: id,
+              state: 0,
+              orders: orders,
+              price: this.orderService.ordersPrice(orders),
+              area: this.orderService.ordersArea(orders),
+              create_time: new Date().getTime()
+            })
+            .then(() => this.done(orders, id));
         });
     });
   }
 
-  selectById() {}
+  selectById(orders: string[]) {
+    let doc = this.scheduleService.doc(this.id!);
+    if (!doc) return;
+    (doc['orders'] as string[]).push(...orders);
+    doc['area'] = this.orderService.ordersArea(orders);
+    doc['price'] = this.orderService.ordersPrice(orders);
+    console.log(doc)
+    this.scheduleService.put(doc).then(() => this.done(orders, this.id!));
+  }
+
+  async done(orders: string[], id: string) {
+    this.orderService.bulkChange(orders, m => {
+      m['schedule'] = id;
+      m['state'] = 2;
+      m['schedule_time'] = new Date().getTime();
+    });
+    this.router.navigate(['../../' + id], {relativeTo: this.route});
+  }
 }

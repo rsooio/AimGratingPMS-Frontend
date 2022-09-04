@@ -20,8 +20,7 @@ import { NzTableComponent } from 'ng-zorro-antd/table';
   styleUrls: ['./producteditor.component.scss']
 })
 export class ProducteditorComponent implements OnInit {
-  id: any;
-  setid: any;
+  id?: string;
   createProductButtonDisabled = false;
   order?: Doc;
   productSet: { [x: string]: any } = {};
@@ -42,65 +41,26 @@ export class ProducteditorComponent implements OnInit {
     public utilsService: UtilsService,
   ) { }
 
-  fetchData(order: Doc) {
-    if (!order) return;
-    this.order = order
-    const productSets = order['product_set'];
-    if (!productSets) return;
-    this.productSets = productSets;
-    const productSet = productSets[this.setid];
-    if (!productSet) return;
-    this.productSet = productSet;
-    const products = productSet['products']
-    if (!products) return;
-    this.products = products;
-  }
-
-  // get technologyList(): string[] {
-  //   return Object.keys(this.technologies.tree);
-  // }
-
-  // get order(): Doc {
-  //   return this.orderService.data[this.id] ? this.orderService.data[this.id] : {}
-  // }
-
-  // get productSet(): Doc {
-  //   if (this.order['product_set']) {
-  //     return this.order['product_set'][this.setid] ? this.order['product_set'][this.setid] : {}
-  //   }
-  //   return {}
-  // }
-
-  // get products(): Doc[] {
-  //   return this.productSet['products'] ? this.productSet['products'] : []
-  // }
-
-  // textureList(data: Doc) {
-  //   if (!this.technologies.cache[data['technology']]) return [];
-  //   return Object.keys(this.technologies.tree[data['technology']])
-  // }
-
-  // colorList(data: Doc) {
-  //   if (!this.technologies.cache[data['technology'] + data['texture']]) return [];
-  //   return this.technologies.tree[data['technology']][data['texture']];
-  // }
-
   async ngOnInit() {
     this.route.params.subscribe({
       next: m => {
         this.id = m['id']
-        this.setid = m['setid']
       }
     });
     setTimeout(() => {
       this.orderService.Stream
         .pipe(filter(m => m.id_ == this.id))
         .subscribe(m => this.fetchData(m))
-      this.fetchData(this.orderService.doc(this.id))
+      this.fetchData(this.orderService.doc(this.id!))
     }, 0);
   }
 
-  async ngAfterViewInit() {
+  fetchData(order: Doc) {
+    if (!order) return;
+    this.order = order
+    const products = order['products']
+    if (!products) return;
+    this.products = products;
   }
 
   onBack() {
@@ -143,7 +103,6 @@ export class ProducteditorComponent implements OnInit {
     }
     data['unit_price'] = this.clientService.unit_price(this.order!['client'], data['technology'], data['texture'], data['color'], data['type'])
     this.orderService.calcProduct(data, true, false)
-    this.orderService.calcProductSet(this.order!['product_set'][this.setid], true, false)
     this.orderService.calcOrder(this.order!, true, false)
     this.orderService.put(this.order!);
   }
@@ -171,7 +130,6 @@ export class ProducteditorComponent implements OnInit {
       if (data['length'] && data['width']) {
         const isCalcPrice = data['unit_price'] && update
         this.orderService.calcProduct(data, isCalcPrice);
-        this.orderService.calcProductSet(this.order!['product_set'][this.setid], isCalcPrice);
         this.orderService.calcOrder(this.order!, isCalcPrice);
       }
       this.orderService.put(this.order!);
@@ -183,7 +141,6 @@ export class ProducteditorComponent implements OnInit {
     if (index != -1) {
       this.products.splice(index, 1);
       this.orderService.calcProduct(data, true);
-      this.orderService.calcProductSet(this.order!['product_set'][this.setid], true);
       this.orderService.calcOrder(this.order!, true);
       this.orderService.put(this.order!);
     }

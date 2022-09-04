@@ -19,17 +19,6 @@ export class DataService {
     enterprise: string | null,
   };
 
-  ORDER_STATE: { [key: number]: string } = {
-    99: '已取消',
-    0: '录入中',
-    1: '待排期',
-    2: '生产中',
-    3: '已生产',
-    4: '已入库',
-    5: '已出库',
-    6: '已结清',
-  }
-
   AIR_GRATING_TYPE: string[] = [
     '出风口',
     '回风口',

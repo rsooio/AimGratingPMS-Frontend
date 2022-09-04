@@ -8,7 +8,12 @@ import { OrderService } from '@/services/order/order.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
 import { filter } from 'rxjs';
+import { TechnologyService } from '@/services/technology/technology.service';
 
+interface product {
+  key: string
+  value: { [x: string]: any }
+}
 
 @Component({
   selector: 'app-ordereditor',
@@ -16,11 +21,11 @@ import { filter } from 'rxjs';
   styleUrls: ['./ordereditor.component.scss']
 })
 export class OrdereditorComponent implements OnInit {
-  id: string = '';
-  createProductSetButtonDisabled = false
+  id?: string;
   order?: GetDoc;
-  productSets: { key: string, value: { [x: string]: any } }[] = [];
+  products: product[] = [];
   date?: string;
+  checkedSet: Set<string> = new Set<string>();
 
   get clients() {
     return Object.values(this.clientService.data)
@@ -30,13 +35,14 @@ export class OrdereditorComponent implements OnInit {
   constructor(
     private db: DbService,
     public dataService: DataService,
-    private orderService: OrderService,
+    public orderService: OrderService,
     private random: RandomService,
     private route: ActivatedRoute,
     private router: Router,
     public pinyin: PinyinService,
     public clientService: ClientService,
     public utilsService: UtilsService,
+    public technologyService: TechnologyService,
   ) { }
 
   ngOnInit(): void {
@@ -49,7 +55,7 @@ export class OrdereditorComponent implements OnInit {
       this.orderService.Stream
         .pipe(filter(m => m.id_ == this.id))
         .subscribe(m => this.fetchData(m))
-      this.fetchData(this.orderService.doc(this.id))
+      this.fetchData(this.orderService.doc(this.id!))
     }, 0);
   }
 
@@ -62,36 +68,30 @@ export class OrdereditorComponent implements OnInit {
     } else {
       this.date = undefined
     }
-    const productSets = order['product_set'];
-    if (!productSets) return;
-    this.productSets = [];
-    Object.keys(productSets)
-      .forEach(k => {
-        this.productSets.unshift({
-          key: k,
-          value: productSets[k],
-        })
-      })
+    const products = order['products'];
+    this.products = [];
+    Object.keys(products)
+      .sort((a, b) => products[b]['create_time'] - products[a]['create_time'])
+      .forEach(k => this.products.push({ key: k, value: products[k] }));
+    this.products = this.products.slice();
   }
 
-  createProductSet() {
+  createProduct() {
     if (this.order == undefined) return;
-    this.random.string(2)
+    this.random.string(3)
       .then(id => {
-        if (this.order!['product_set'][id]) {
-          this.createProductSet();
+        if (this.order!['products'][id]) {
+          this.createProduct();
         } else {
-          this.order!['product_set'][id] = {
+          this.order!['products'][id] = {
             create_time: new Date().getTime(),
-            price: 0,
-            area: 0,
             products: [],
           };
           this.orderService
             .put(this.order!)
             .catch(() => {
-              delete this.order!['product_set'][id];
-              this.createProductSet();
+              delete this.order!['products'][id];
+              this.createProduct();
             })
         }
       })
@@ -101,15 +101,7 @@ export class OrdereditorComponent implements OnInit {
     this.router.navigate(['..'], { relativeTo: this.route })
   }
 
-  delete(id: string) {
-    if (this.order == undefined) return;
-    if (this.order['product_set'][id]) {
-      delete this.order['product_set'][id]
-      this.orderService.put(this.order)
-    }
-  }
-
-  update(data: { [x: string]: any }) {
+  orderUpdate(data: { [x: string]: any }) {
     if (data['edit']) {
       delete data['edit'];
     }
@@ -119,7 +111,7 @@ export class OrdereditorComponent implements OnInit {
     }
   }
 
-  select(data: { [x: string]: any }, key: string, value: Event) {
+  orderSelect(data: { [x: string]: any }, key: string, value: Event) {
     if (data['edit']) {
       delete data['edit']
     }
@@ -133,5 +125,45 @@ export class OrdereditorComponent implements OnInit {
         delete data['edit']
       }
     }, 200);
+  }
+
+  productSelect(data: { [x: string]: any }) {
+    if (data['edit']) {
+      delete data['edit']
+    }
+    data['unit_price'] = this.clientService.unit_price(this.order!['client'], data['technology'], data['texture'], data['color'], data['type'])
+    this.orderService.calcProduct(data, true, false)
+    this.orderService.calcOrder(this.order!, true, false)
+    this.orderService.put(this.order!);
+  }
+
+  selectClear(product: product, keys: string[]) {
+    for (const k of keys) {
+      if (product.value[k]) delete product.value[k];
+    }
+  }
+
+  productChange(product: product, update: boolean = true) {
+    if (product.value['edit']) {
+      delete product.value['edit'];
+    }
+    if (product.value['change']) {
+      delete product.value['change'];
+      if (product.value['length'] && product.value['width']) {
+        const isCalcPrice = product.value['unit_price'] && update
+        this.orderService.calcProduct(product.value, isCalcPrice);
+        this.orderService.calcOrder(this.order!, isCalcPrice);
+      }
+      this.orderService.put(this.order!);
+    }
+  }
+
+  productDelete(product: product) {
+    if (this.order!['products'][product.key]) {
+      delete this.order!['products'][product.key];
+    }
+    this.orderService.calcProduct(product.value, true);
+    this.orderService.calcOrder(this.order!, true);
+    this.orderService.put(this.order!);
   }
 }

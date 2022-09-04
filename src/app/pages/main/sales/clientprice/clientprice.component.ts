@@ -31,9 +31,7 @@ export class ClientpriceComponent implements OnInit {
     public dataService: DataService,
     public pinyinService: PinyinService,
     public utilsService: UtilsService,
-  ) {
-    (window as any).debug = this;
-  }
+  ) { }
 
   get types() {
     return ['默认', ...this.dataService.AIR_GRATING_TYPE]

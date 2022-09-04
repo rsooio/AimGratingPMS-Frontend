@@ -15,13 +15,13 @@
         <span title><i class="submenu-logo" nz-icon nzType="dashboard"></i><span class="submenu-title">信息</span></span>
         <ul>
           <li nz-menu-item nzMatchRouter>
-            <a routerLink="/welcome">Welcome</a>
+            <a routerLink="dashboard/info">统计信息</a>
           </li>
-          <li nz-menu-item nzMatchRouter>
-            <a>Monitor</a>
+          <li *ngIf="false" nz-menu-item nzMatchRouter>
+            <a>销售分析</a>
           </li>
-          <li nz-menu-item nzMatchRouter>
-            <a>Workplace</a>
+          <li *ngIf="false" nz-menu-item nzMatchRouter>
+            <a>生产分析</a>
           </li>
         </ul>
       </li>
@@ -50,7 +50,7 @@
           </li>
         </ul>
       </li>
-      <li nz-submenu [(nzOpen)]="openMap['sub4']" (nzOpenChange)="openHandler('sub4')">
+      <li *ngIf="false" nz-submenu [(nzOpen)]="openMap['sub4']" (nzOpenChange)="openHandler('sub4')">
         <span title><i class="submenu-logo" nz-icon nzType="inbox"></i><span class="submenu-title">仓储</span></span>
         <ul>
           <li nz-menu-item nzMatchRouter>
@@ -58,7 +58,7 @@
           </li>
         </ul>
       </li>
-      <li nz-submenu [(nzOpen)]="openMap['sub5']" (nzOpenChange)="openHandler('sub5')">
+      <li *ngIf="false" nz-submenu [(nzOpen)]="openMap['sub5']" (nzOpenChange)="openHandler('sub5')">
         <span title><i class="submenu-logo" nz-icon nzType="transaction"></i><span
             class="submenu-title">财务</span></span>
         <ul>
@@ -67,7 +67,7 @@
           </li>
         </ul>
       </li>
-      <li nz-submenu [(nzOpen)]="openMap['sub6']" (nzOpenChange)="openHandler('sub6')">
+      <li *ngIf="false" nz-submenu [(nzOpen)]="openMap['sub6']" (nzOpenChange)="openHandler('sub6')">
         <span title><i class="submenu-logo" nz-icon nzType="idcard"></i><span class="submenu-title">企业</span></span>
         <ul>
           <li nz-menu-item nzMatchRouter>

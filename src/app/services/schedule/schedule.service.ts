@@ -2,6 +2,7 @@ import { DataService } from '@/services/data/data.service';
 import { GetDoc, DbService, Doc } from '@/services/db/db.service';
 import { Injectable } from '@angular/core';
 import { Subject, filter } from 'rxjs';
+import { OrderService } from '../order/order.service';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +11,12 @@ export class ScheduleService {
   type = 'schedule';
   Stream: Subject<GetDoc> = new Subject<GetDoc>();
   private _docs: { [x: string]: GetDoc } = {}
+
+  readonly STATE: { [x: number]: string} = {
+    0: '待执行',
+    1: '执行中',
+    2: '已完成',
+  }
 
   constructor(
     private dbService: DbService,
