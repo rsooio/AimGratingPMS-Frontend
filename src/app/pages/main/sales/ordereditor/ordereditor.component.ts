@@ -76,22 +76,34 @@ export class OrdereditorComponent implements OnInit {
     this.products = this.products.slice();
   }
 
-  createProduct() {
+  createProduct(insert?: { [x: string]: any }) {
     if (this.order == undefined) return;
+    if (!insert) {
+      insert = {};
+      if (this.products.length) {
+        let last: { [x: string]: any } = {};
+        last = this.products[0].value;
+        if (last['technology']) insert['technology'] = last['technology'];
+        if (last['texture']) insert['texture'] = last['texture'];
+        if (last['color']) insert['color'] = last['color'];
+        if (last['type'] === '出风口') insert['type'] = '回风口';
+        else if (last['type'] === '回风口') insert['type'] = '出风口';
+        else if (last['type']) insert['type'] = last['type'];
+        if (last['unit_price']) insert['unit_price'] = last['unit_price'];
+      }
+    }
     this.random.string(3)
       .then(id => {
         if (this.order!['products'][id]) {
-          this.createProduct();
+          this.createProduct(insert);
         } else {
-          this.order!['products'][id] = {
-            create_time: new Date().getTime(),
-            products: [],
-          };
+          insert!['create_time'] = new Date().getTime();
+          this.order!['products'][id] = insert;
           this.orderService
             .put(this.order!)
             .catch(() => {
               delete this.order!['products'][id];
-              this.createProduct();
+              this.createProduct(insert);
             })
         }
       })
