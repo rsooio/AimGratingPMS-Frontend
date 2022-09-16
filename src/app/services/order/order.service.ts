@@ -89,7 +89,8 @@ export class OrderService {
     if (area || price) {
       const quentity = data['quentity'] ? data['quentity'] : 1
       if (area) {
-        data['area'] = MathService.round((data['length'] + 5) * (data['width'] + 5)/ 10000, 2) * quentity;
+        const singlePrice = (data['length'] + 5) * (data['width'] + 5)/ 10000;
+        data['area'] = (singlePrice < 0.1 ? 0.1 : MathService.round(singlePrice, 2)) * quentity;
       }
       if (price) {
         data['price'] = MathService.round(data['area'] * data['unit_price'], 2);
