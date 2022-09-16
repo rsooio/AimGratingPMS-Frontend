@@ -150,9 +150,8 @@ export class OrdereditorComponent implements OnInit {
     if (product.value['change']) {
       delete product.value['change'];
       if (product.value['length'] && product.value['width']) {
-        const isCalcPrice = product.value['unit_price'] && update
-        this.orderService.calcProduct(product.value, isCalcPrice);
-        this.orderService.calcOrder(this.order!, isCalcPrice);
+        if (product.value['unit_price']) this.orderService.calcProduct(product.value, update);
+        this.orderService.calcOrder(this.order!, true);
       }
       this.orderService.put(this.order!);
     }
